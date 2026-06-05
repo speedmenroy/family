@@ -310,48 +310,111 @@ var defaultFamily = [
   {name:'Rose', phone:'9XXX XXXX'},
 ];
 
-// ====== Auto-save / load ======
-var STORAGE_KEY = 'wuFamily_v2';
+// ====== Firebase setup (loaded dynamically) ======
+var dataRef = null;
+var firebaseOK = false;
+var skipNextSync = false;
+
 var schedules, salaryPaid, salaryLog, supplies, deliveries, emergency, family;
 
-var store = (function(){ try { return window['local'+'Storage']; } catch(e){ return null; } })();
-function saveAll(){
-  try {
-    if(!store) return;
-    var data = {schedules:schedules,salaryPaid:salaryPaid,salaryLog:salaryLog,supplies:supplies,deliveries:deliveries,emergency:emergency,family:family};
-    store.setItem(STORAGE_KEY, JSON.stringify(data));
-  } catch(e){ /* storage unavailable */ }
-}
-function loadAll(){
-  try {
-    var raw = store ? store.getItem(STORAGE_KEY) : null;
-    if(raw){
-      var d = JSON.parse(raw);
-      schedules = d.schedules || defaultSchedules.slice();
-      salaryPaid = d.salaryPaid || false;
-      salaryLog = d.salaryLog || defaultSalaryLog.slice();
-      supplies = d.supplies || defaultSupplies.slice();
-      deliveries = d.deliveries || defaultDeliveries.slice();
-      emergency = d.emergency || defaultEmergency.slice();
-      family = d.family || defaultFamily.slice();
-      // migrate old single-date schedules to range format
-      schedules = schedules.map(function(s){
-        if(s.date && !s.dateFrom){
-          return {dateFrom:s.date, dateTo:s.date, type:s.type, title:s.title};
-        }
-        return s;
-      });
-      return;
-    }
-  } catch(e){ /* storage unavailable */ }
-  // fallback to defaults
-  schedules = defaultSchedules.slice();
+function deepCopy(o){ return JSON.parse(JSON.stringify(o)); }
+
+function useDefaults(){
+  schedules = deepCopy(defaultSchedules);
   salaryPaid = defaultSalaryPaid;
-  salaryLog = defaultSalaryLog.slice();
-  supplies = defaultSupplies.slice();
-  deliveries = defaultDeliveries.slice();
-  emergency = defaultEmergency.slice();
-  family = defaultFamily.slice();
+  salaryLog = deepCopy(defaultSalaryLog);
+  supplies = deepCopy(defaultSupplies);
+  deliveries = deepCopy(defaultDeliveries);
+  emergency = deepCopy(defaultEmergency);
+  family = deepCopy(defaultFamily);
+}
+
+function toArray(v){
+  if(Array.isArray(v)) return v;
+  if(v && typeof v === 'object') return Object.keys(v).sort(function(a,b){return a-b;}).map(function(k){return v[k];});
+  return [];
+}
+
+function applyData(d){
+  schedules = toArray(d.schedules);
+  if(!schedules.length) schedules = deepCopy(defaultSchedules);
+  salaryPaid = d.salaryPaid || false;
+  salaryLog = toArray(d.salaryLog);
+  if(!salaryLog.length) salaryLog = deepCopy(defaultSalaryLog);
+  supplies = toArray(d.supplies);
+  if(!supplies.length) supplies = deepCopy(defaultSupplies);
+  deliveries = toArray(d.deliveries);
+  if(!deliveries.length) deliveries = deepCopy(defaultDeliveries);
+  emergency = toArray(d.emergency);
+  if(!emergency.length) emergency = deepCopy(defaultEmergency);
+  family = toArray(d.family);
+  if(!family.length) family = deepCopy(defaultFamily);
+  // migrate old single-date schedules
+  schedules = schedules.map(function(s){
+    if(s && s.date && !s.dateFrom) return {dateFrom:s.date, dateTo:s.date, type:s.type, title:s.title};
+    return s;
+  }).filter(Boolean);
+}
+
+function renderAll(){
+  renderCalendar(); renderSchedule(); renderSalary(); renderSupplies(); renderDelivery(); renderContacts();
+}
+
+function getDataObj(){
+  return {schedules:schedules, salaryPaid:salaryPaid, salaryLog:salaryLog,
+    supplies:supplies, deliveries:deliveries, emergency:emergency, family:family};
+}
+
+function saveAll(){
+  if(firebaseOK && dataRef){
+    skipNextSync = true;
+    dataRef.set(getDataObj());
+  }
+}
+
+function startRealtimeSync(){
+  if(!firebaseOK || !dataRef) return;
+  dataRef.on('value', function(snapshot){
+    if(skipNextSync){ skipNextSync = false; return; }
+    var d = snapshot.val();
+    if(d){ applyData(d); renderAll(); }
+  });
+}
+
+function initFirebase(){
+  // dynamically load Firebase SDK
+  var s1 = document.createElement('script');
+  s1.src = 'https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js';
+  s1.onload = function(){
+    var s2 = document.createElement('script');
+    s2.src = 'https://www.gstatic.com/firebasejs/12.14.0/firebase-database-compat.js';
+    s2.onload = function(){
+      try {
+        firebase.initializeApp({
+          apiKey: "AIzaSyBEpTHKd_ouDSQrfHIQyxe3LKpK_RRUaGI",
+          authDomain: "wu-family-633cb.firebaseapp.com",
+          databaseURL: "https://wu-family-633cb-default-rtdb.asia-southeast1.firebasedatabase.app",
+          projectId: "wu-family-633cb",
+          storageBucket: "wu-family-633cb.firebasestorage.app",
+          messagingSenderId: "133378973614",
+          appId: "1:133378973614:web:4b87bd1d3f40f96881b23f"
+        });
+        dataRef = firebase.database().ref('appData');
+        firebaseOK = true;
+        // load data from Firebase
+        dataRef.once('value', function(snapshot){
+          var d = snapshot.val();
+          if(d){ applyData(d); renderAll(); }
+          else { saveAll(); } // first time: push defaults
+          startRealtimeSync();
+        }, function(){ /* read error, keep defaults */ });
+      } catch(e){ /* init failed, keep defaults */ }
+    };
+    s2.onerror = function(){ /* SDK blocked, keep defaults */ };
+    document.head.appendChild(s2);
+  };
+  s1.onerror = function(){ /* SDK blocked, keep defaults */ };
+  document.head.appendChild(s1);
 }
 
 const typeMap = {
@@ -594,9 +657,11 @@ function delContact(i){ family.splice(i,1); renderContacts(); saveAll(); }
 
 // ====== Init ======
 document.addEventListener('DOMContentLoaded', function(){
-  loadAll();
+  useDefaults();
   initCal();
-  renderCalendar(); renderSchedule(); renderSalary(); renderSupplies(); renderDelivery(); renderContacts();
+  renderAll();
+  // load Firebase in background - if it works, data syncs; if not, defaults stay
+  initFirebase();
 });
 </script>
 </body>
