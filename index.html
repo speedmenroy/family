@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Home Hub</title>
+<title>WU's Family</title>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
   body {
@@ -99,6 +99,16 @@
   .empty{ text-align:center; color:#bbb; font-size:13px; padding:14px;}
   .notice{ background:#fff8e1; color:#a06a00; font-size:11px; padding:8px 12px; border-radius:10px; margin-bottom:12px; line-height:1.5;}
 
+  .edit-btn{ color:#5b6cf9; background:none; border:none; font-size:14px; cursor:pointer; padding:2px 6px;}
+  .edit-inline{ display:flex; flex-direction:column; gap:6px; padding:10px 0; border-bottom:1px solid #f0f0f3;}
+  .edit-inline:last-child{ border-bottom:none;}
+  .edit-inline input{ padding:8px; border:1px solid #ddd; border-radius:8px; font-size:14px; font-family:inherit;}
+  .edit-inline input:focus{ outline:none; border-color:#5b6cf9;}
+  .edit-actions{ display:flex; gap:6px; justify-content:flex-end;}
+  .btn-sm{ padding:6px 14px; font-size:12px; border-radius:8px; border:none; cursor:pointer; font-weight:600; font-family:inherit;}
+  .btn-save{ background:#0ca678; color:#fff;}
+  .btn-cancel{ background:#eee; color:#666;}
+
   /* ===== Calendar ===== */
   .cal-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
   .cal-head h3 { font-size:16px; font-weight:700;}
@@ -124,15 +134,13 @@
 <body>
 
 <header>
-  <h1>🏠 Home Hub</h1>
-  <p>One-stop family coordination · Shared by everyone</p>
+  <h1>🏠 WU's Family</h1>
 </header>
 
 <div class="container">
 
   <!-- ============ CALENDAR ============ -->
   <div class="page active" id="page-calendar">
-    <div class="notice">ℹ️ This is a demo. Data is stored in memory only and resets on refresh. To save permanently, ask a developer to connect a database.</div>
     <div class="card">
       <div class="cal-head">
         <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
@@ -161,7 +169,12 @@
       <p class="subtitle">Public holidays, school breaks, labour days & vacations</p>
       <div id="scheduleList"></div>
       <div class="add-row">
-        <input type="date" id="schDate">
+        <label style="font-size:12px;color:#888;flex:0 0 auto;padding-top:12px;">From</label>
+        <input type="date" id="schDateFrom">
+        <label style="font-size:12px;color:#888;flex:0 0 auto;padding-top:12px;">To</label>
+        <input type="date" id="schDateTo">
+      </div>
+      <div class="add-row">
         <select id="schType">
           <option value="public">Public Holiday</option>
           <option value="school">School Break</option>
@@ -228,6 +241,12 @@
     <div class="card">
       <div class="sec-title">🚨 Emergency Contacts</div>
       <div id="emergencyList"></div>
+      <div class="add-row">
+        <input type="text" id="emName" placeholder="Name">
+        <input type="text" id="emRole" placeholder="Role" style="flex:0 0 100px;">
+        <input type="text" id="emPhone" placeholder="Phone" style="flex:0 0 100px;">
+        <button class="btn btn-primary" onclick="addEmergency()">Add</button>
+      </div>
     </div>
     <div class="card">
       <div class="sec-title">👨‍👩‍👧 Family</div>
@@ -253,34 +272,34 @@
 </nav>
 
 <script>
-// ====== Data (demo, stored in memory) ======
-let schedules = [
-  {date:'2026-06-19', type:'public', title:'Dragon Boat Festival'},
-  {date:'2026-07-13', type:'school', title:"Son's summer break starts"},
-  {date:'2026-08-01', type:'holiday', title:'Family trip to Japan ✈️'},
-  {date:'2026-06-01', type:'labour', title:"Rose's day off"},
+// ====== Default data ======
+var defaultSchedules = [
+  {dateFrom:'2026-06-19', dateTo:'2026-06-19', type:'public', title:'Dragon Boat Festival'},
+  {dateFrom:'2026-07-13', dateTo:'2026-08-31', type:'school', title:"Son's summer break"},
+  {dateFrom:'2026-08-01', dateTo:'2026-08-10', type:'holiday', title:'Family trip to Japan'},
+  {dateFrom:'2026-06-01', dateTo:'2026-06-01', type:'labour', title:"Rose's day off"},
 ];
-let salaryPaid = false;
-let salaryLog = [
+var defaultSalaryPaid = false;
+var defaultSalaryLog = [
   {month:'May 2026', date:'2026-05-01'},
   {month:'April 2026', date:'2026-04-01'},
 ];
-let supplies = [
+var defaultSupplies = [
   {name:'Laundry detergent', done:false},
   {name:'Tissue (1 pack)', done:false},
   {name:"Son's milk", done:true},
 ];
-let deliveries = [
+var defaultDeliveries = [
   {item:'IKEA sofa', date:'2026-06-05', who:'Dad', done:false},
   {item:'Parcel (SF Express)', date:'2026-06-02', who:'Rose', done:false},
 ];
-let emergency = [
+var defaultEmergency = [
   {name:'Ambulance / Fire', role:'999 Emergency', phone:'999', color:'#e03131'},
   {name:'Southern Ambulance', role:'Non-emergency', phone:'2735 3355', color:'#e8590c'},
-  {name:'Aberdeen Police', role:'Southern District', phone:'2552 7297', color:'#1971c2'},
-  {name:'Building Mgmt', role:'Security desk', phone:'2XXX XXXX', color:'#5b6cf9'},
+  {name:'Aberdeen Police', role:'Southern District', phone:'2870 7200', color:'#1971c2'},
+  {name:'Concierge', role:'Security desk', phone:'2580 5615', color:'#5b6cf9'},
 ];
-let family = [
+var defaultFamily = [
   {name:'Grandpa (M)', phone:'9XXX XXXX'},
   {name:'Grandma (M)', phone:'9XXX XXXX'},
   {name:'Grandpa (P)', phone:'9XXX XXXX'},
@@ -291,6 +310,50 @@ let family = [
   {name:'Rose', phone:'9XXX XXXX'},
 ];
 
+// ====== Auto-save / load ======
+var STORAGE_KEY = 'wuFamily_v2';
+var schedules, salaryPaid, salaryLog, supplies, deliveries, emergency, family;
+
+var store = (function(){ try { return window['local'+'Storage']; } catch(e){ return null; } })();
+function saveAll(){
+  try {
+    if(!store) return;
+    var data = {schedules:schedules,salaryPaid:salaryPaid,salaryLog:salaryLog,supplies:supplies,deliveries:deliveries,emergency:emergency,family:family};
+    store.setItem(STORAGE_KEY, JSON.stringify(data));
+  } catch(e){ /* storage unavailable */ }
+}
+function loadAll(){
+  try {
+    var raw = store ? store.getItem(STORAGE_KEY) : null;
+    if(raw){
+      var d = JSON.parse(raw);
+      schedules = d.schedules || defaultSchedules.slice();
+      salaryPaid = d.salaryPaid || false;
+      salaryLog = d.salaryLog || defaultSalaryLog.slice();
+      supplies = d.supplies || defaultSupplies.slice();
+      deliveries = d.deliveries || defaultDeliveries.slice();
+      emergency = d.emergency || defaultEmergency.slice();
+      family = d.family || defaultFamily.slice();
+      // migrate old single-date schedules to range format
+      schedules = schedules.map(function(s){
+        if(s.date && !s.dateFrom){
+          return {dateFrom:s.date, dateTo:s.date, type:s.type, title:s.title};
+        }
+        return s;
+      });
+      return;
+    }
+  } catch(e){ /* storage unavailable */ }
+  // fallback to defaults
+  schedules = defaultSchedules.slice();
+  salaryPaid = defaultSalaryPaid;
+  salaryLog = defaultSalaryLog.slice();
+  supplies = defaultSupplies.slice();
+  deliveries = defaultDeliveries.slice();
+  emergency = defaultEmergency.slice();
+  family = defaultFamily.slice();
+}
+
 const typeMap = {
   public:{cls:'tag-public', label:'Public Holiday', color:'#e03131'},
   school:{cls:'tag-school', label:'School Break', color:'#1971c2'},
@@ -300,28 +363,46 @@ const typeMap = {
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ====== Date formatting ======
+// dd/mm/yyyy
+function fmtDMY(d){
+  var p = d.split('-');
+  return p[2]+'/'+p[1]+'/'+p[0];
+}
+// range display
+function fmtRange(s){
+  if(s.dateFrom === s.dateTo) return fmtDMY(s.dateFrom);
+  return fmtDMY(s.dateFrom) + ' to ' + fmtDMY(s.dateTo);
+}
+// long format for day detail header
+function fmtDateLong(d){
+  var dt = new Date(d+'T00:00:00');
+  return MONTHS[dt.getMonth()]+' '+dt.getDate()+', '+dt.getFullYear()+' ('+DOW[dt.getDay()]+')';
+}
+// check if a yyyy-mm-dd string falls within a schedule's range
+function dayInRange(ds, s){
+  return ds >= s.dateFrom && ds <= s.dateTo;
+}
+
 // ====== Navigation ======
 function go(p, btn){
-  document.querySelectorAll('.page').forEach(e=>e.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(function(e){e.classList.remove('active');});
   document.getElementById('page-'+p).classList.add('active');
-  document.querySelectorAll('nav button').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(function(b){b.classList.remove('active');});
   btn.classList.add('active');
   window.scrollTo(0,0);
 }
 
-function fmtDate(d){
-  const dt = new Date(d+'T00:00:00');
-  return `${MONTHS[dt.getMonth()]} ${dt.getDate()}, ${dt.getFullYear()} (${DOW[dt.getDay()]})`;
-}
-
 // ====== Calendar ======
-let calYear, calMonth, selectedDate;
+var calYear, calMonth, selectedDate;
 function initCal(){
-  const now = new Date();
+  var now = new Date();
   calYear = now.getFullYear();
   calMonth = now.getMonth();
   selectedDate = now.toISOString().slice(0,10);
-  document.getElementById('calDow').innerHTML = DOW.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+  document.getElementById('calDow').innerHTML = DOW.map(function(d){return '<div class="cal-dow">'+d+'</div>';}).join('');
 }
 function changeMonth(dir){
   calMonth += dir;
@@ -330,172 +411,193 @@ function changeMonth(dir){
   renderCalendar();
 }
 function renderCalendar(){
-  document.getElementById('calTitle').textContent = `${MONTHS[calMonth]} ${calYear}`;
-  const first = new Date(calYear, calMonth, 1).getDay();
-  const days = new Date(calYear, calMonth+1, 0).getDate();
-  const todayStr = new Date().toISOString().slice(0,10);
-  let html = '';
-  for(let i=0;i<first;i++){ html += `<div class="cal-cell empty-cell"></div>`; }
-  for(let d=1; d<=days; d++){
-    const ds = `${calYear}-${String(calMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const evs = schedules.filter(s=>s.date===ds);
-    const dots = evs.slice(0,4).map(e=>`<i class="cal-dot" style="background:${typeMap[e.type].color}"></i>`).join('');
-    const cls = (ds===todayStr?'today ':'') + (ds===selectedDate?'selected':'');
-    html += `<div class="cal-cell ${cls}" onclick="selectDay('${ds}')">${d}<div class="cal-dots">${dots}</div></div>`;
+  document.getElementById('calTitle').textContent = MONTHS[calMonth]+' '+calYear;
+  var first = new Date(calYear, calMonth, 1).getDay();
+  var days = new Date(calYear, calMonth+1, 0).getDate();
+  var todayStr = new Date().toISOString().slice(0,10);
+  var html = '';
+  for(var i=0;i<first;i++){ html += '<div class="cal-cell empty-cell"></div>'; }
+  for(var d=1; d<=days; d++){
+    var ds = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    var evs = schedules.filter(function(s){ return dayInRange(ds, s); });
+    // deduplicate dot colours
+    var seen = {};
+    var dots = '';
+    evs.forEach(function(e){
+      var col = typeMap[e.type].color;
+      if(!seen[col]){ seen[col]=true; dots += '<i class="cal-dot" style="background:'+col+'"></i>'; }
+    });
+    var cls = (ds===todayStr?'today ':'') + (ds===selectedDate?'selected':'');
+    html += '<div class="cal-cell '+cls+'" onclick="selectDay(\''+ds+'\')">'+d+'<div class="cal-dots">'+dots+'</div></div>';
   }
   document.getElementById('calGrid').innerHTML = html;
   renderDayDetail();
 }
 function selectDay(ds){ selectedDate = ds; renderCalendar(); }
 function renderDayDetail(){
-  document.getElementById('dayTitle').textContent = `📌 ${fmtDate(selectedDate)}`;
-  const evs = schedules.filter(s=>s.date===selectedDate);
-  const el = document.getElementById('dayEvents');
+  document.getElementById('dayTitle').textContent = '\uD83D\uDCCC '+fmtDateLong(selectedDate);
+  var evs = schedules.filter(function(s){ return dayInRange(selectedDate, s); });
+  var el = document.getElementById('dayEvents');
   if(!evs.length){ el.innerHTML='<div class="empty">No events on this day</div>'; return; }
-  el.innerHTML = evs.map(s=>{
-    const t = typeMap[s.type];
-    return `<div class="item">
-      <div class="dot" style="background:${t.color}"></div>
-      <div class="item-main"><div class="item-title">${s.title}</div></div>
-      <span class="badge ${t.cls}">${t.label}</span>
-    </div>`;
+  el.innerHTML = evs.map(function(s){
+    var t = typeMap[s.type];
+    var sub = (s.dateFrom !== s.dateTo) ? '<div class="item-sub">'+fmtRange(s)+'</div>' : '';
+    return '<div class="item"><div class="dot" style="background:'+t.color+'"></div><div class="item-main"><div class="item-title">'+s.title+'</div>'+sub+'</div><span class="badge '+t.cls+'">'+t.label+'</span></div>';
   }).join('');
 }
 
 // ====== Schedule list ======
 function renderSchedule(){
-  const sorted = [...schedules].sort((a,b)=>a.date.localeCompare(b.date));
-  const el = document.getElementById('scheduleList');
+  var sorted = schedules.slice().sort(function(a,b){ return a.dateFrom.localeCompare(b.dateFrom); });
+  var el = document.getElementById('scheduleList');
   if(!sorted.length){ el.innerHTML='<div class="empty">No events yet</div>'; return;}
-  el.innerHTML = sorted.map(s=>{
-    const t = typeMap[s.type];
-    const i = schedules.indexOf(s);
-    return `<div class="item">
-      <div class="dot" style="background:${t.color}"></div>
-      <div class="item-main">
-        <div class="item-title">${s.title}</div>
-        <div class="item-sub">${fmtDate(s.date)}</div>
-      </div>
-      <span class="badge ${t.cls}">${t.label}</span>
-      <button class="del" onclick="delSchedule(${i})">×</button>
-    </div>`;
+  el.innerHTML = sorted.map(function(s){
+    var t = typeMap[s.type];
+    var i = schedules.indexOf(s);
+    return '<div class="item"><div class="dot" style="background:'+t.color+'"></div><div class="item-main"><div class="item-title">'+s.title+'</div><div class="item-sub">'+fmtRange(s)+'</div></div><span class="badge '+t.cls+'">'+t.label+'</span><button class="del" onclick="delSchedule('+i+')">x</button></div>';
   }).join('');
 }
 function addSchedule(){
-  const date=document.getElementById('schDate').value;
-  const title=document.getElementById('schTitle').value.trim();
-  const type=document.getElementById('schType').value;
-  if(!date||!title){ return;}
-  schedules.push({date,title,type});
+  var dateFrom=document.getElementById('schDateFrom').value;
+  var dateTo=document.getElementById('schDateTo').value;
+  var title=document.getElementById('schTitle').value.trim();
+  var type=document.getElementById('schType').value;
+  if(!dateFrom||!title) return;
+  if(!dateTo || dateTo < dateFrom) dateTo = dateFrom;
+  schedules.push({dateFrom:dateFrom, dateTo:dateTo, title:title, type:type});
   document.getElementById('schTitle').value='';
-  renderSchedule(); renderCalendar();
+  renderSchedule(); renderCalendar(); saveAll();
 }
-function delSchedule(i){ schedules.splice(i,1); renderSchedule(); renderCalendar();}
+function delSchedule(i){ schedules.splice(i,1); renderSchedule(); renderCalendar(); saveAll(); }
 
 // ====== Salary ======
 function renderSalary(){
-  const now = new Date();
-  document.getElementById('salaryMonth').textContent = `${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
-  const st = document.getElementById('salaryStatus');
-  st.textContent = salaryPaid ? 'Paid ✓' : 'Not Paid';
+  var now = new Date();
+  document.getElementById('salaryMonth').textContent = MONTHS[now.getMonth()]+' '+now.getFullYear();
+  var st = document.getElementById('salaryStatus');
+  st.textContent = salaryPaid ? 'Paid \u2713' : 'Not Paid';
   st.className = 'salary-status ' + (salaryPaid?'paid':'unpaid');
-  const log = document.getElementById('salaryLog');
-  log.innerHTML = salaryLog.map(l=>`<div class="item">
-    <div class="dot" style="background:#0ca678"></div>
-    <div class="item-main"><div class="item-title">${l.month}</div>
-    <div class="item-sub">Paid on ${l.date}</div></div>
-    <span class="badge tag-holiday">Paid</span></div>`).join('');
+  var log = document.getElementById('salaryLog');
+  log.innerHTML = salaryLog.map(function(l){
+    return '<div class="item"><div class="dot" style="background:#0ca678"></div><div class="item-main"><div class="item-title">'+l.month+'</div><div class="item-sub">Paid on '+l.date+'</div></div><span class="badge tag-holiday">Paid</span></div>';
+  }).join('');
 }
 function toggleSalary(){
   salaryPaid = !salaryPaid;
   if(salaryPaid){
-    const now=new Date();
-    const m = `${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
-    if(!salaryLog.find(l=>l.month===m)){
+    var now=new Date();
+    var m = MONTHS[now.getMonth()]+' '+now.getFullYear();
+    if(!salaryLog.find(function(l){return l.month===m;})){
       salaryLog.unshift({month:m, date:now.toISOString().slice(0,10)});
     }
   }
-  renderSalary();
+  renderSalary(); saveAll();
 }
 
 // ====== Supplies ======
 function renderSupplies(){
-  const el=document.getElementById('suppliesList');
+  var el=document.getElementById('suppliesList');
   if(!supplies.length){ el.innerHTML='<div class="empty">No supplies needed</div>'; return;}
-  el.innerHTML = supplies.map((s,i)=>`<div class="item ${s.done?'done':''}">
-    <input type="checkbox" class="check" ${s.done?'checked':''} onchange="toggleSupply(${i})">
-    <div class="item-main"><div class="item-title">${s.name}</div></div>
-    <button class="del" onclick="delSupply(${i})">×</button>
-  </div>`).join('');
+  el.innerHTML = supplies.map(function(s,i){
+    return '<div class="item '+(s.done?'done':'')+'"><input type="checkbox" class="check" '+(s.done?'checked':'')+' onchange="toggleSupply('+i+')"><div class="item-main"><div class="item-title">'+s.name+'</div></div><button class="del" onclick="delSupply('+i+')">x</button></div>';
+  }).join('');
 }
 function addSupply(){
-  const v=document.getElementById('supItem').value.trim();
+  var v=document.getElementById('supItem').value.trim();
   if(!v) return;
   supplies.push({name:v,done:false});
   document.getElementById('supItem').value='';
-  renderSupplies();
+  renderSupplies(); saveAll();
 }
-function toggleSupply(i){ supplies[i].done=!supplies[i].done; renderSupplies();}
-function delSupply(i){ supplies.splice(i,1); renderSupplies();}
+function toggleSupply(i){ supplies[i].done=!supplies[i].done; renderSupplies(); saveAll(); }
+function delSupply(i){ supplies.splice(i,1); renderSupplies(); saveAll(); }
 
 // ====== Delivery ======
 function renderDelivery(){
-  const el=document.getElementById('deliveryList');
+  var el=document.getElementById('deliveryList');
   if(!deliveries.length){ el.innerHTML='<div class="empty">Nothing to receive</div>'; return;}
-  el.innerHTML = deliveries.map((d,i)=>`<div class="item ${d.done?'done':''}">
-    <input type="checkbox" class="check" ${d.done?'checked':''} onchange="toggleDelivery(${i})">
-    <div class="item-main">
-      <div class="item-title">${d.item}</div>
-      <div class="item-sub">${d.date?fmtDate(d.date):''} ${d.who?'· Received by '+d.who:''}</div>
-    </div>
-    <button class="del" onclick="delDelivery(${i})">×</button>
-  </div>`).join('');
+  el.innerHTML = deliveries.map(function(d,i){
+    var dateTxt = d.date ? fmtDMY(d.date) : '';
+    return '<div class="item '+(d.done?'done':'')+'"><input type="checkbox" class="check" '+(d.done?'checked':'')+' onchange="toggleDelivery('+i+')"><div class="item-main"><div class="item-title">'+d.item+'</div><div class="item-sub">'+dateTxt+(d.who?' · Received by '+d.who:'')+'</div></div><button class="del" onclick="delDelivery('+i+')">x</button></div>';
+  }).join('');
 }
 function addDelivery(){
-  const item=document.getElementById('delItem').value.trim();
-  const date=document.getElementById('delDate').value;
-  const who=document.getElementById('delWho').value.trim();
+  var item=document.getElementById('delItem').value.trim();
+  var date=document.getElementById('delDate').value;
+  var who=document.getElementById('delWho').value.trim();
   if(!item) return;
-  deliveries.push({item,date,who,done:false});
+  deliveries.push({item:item,date:date,who:who,done:false});
   document.getElementById('delItem').value='';
   document.getElementById('delWho').value='';
-  renderDelivery();
+  renderDelivery(); saveAll();
 }
-function toggleDelivery(i){ deliveries[i].done=!deliveries[i].done; renderDelivery();}
-function delDelivery(i){ deliveries.splice(i,1); renderDelivery();}
+function toggleDelivery(i){ deliveries[i].done=!deliveries[i].done; renderDelivery(); saveAll(); }
+function delDelivery(i){ deliveries.splice(i,1); renderDelivery(); saveAll(); }
 
 // ====== Contacts ======
-function renderContacts(){
-  const em=document.getElementById('emergencyList');
-  em.innerHTML = emergency.map(c=>`<div class="contact emergency">
-    <div class="avatar" style="background:${c.color}">${c.name.slice(0,1)}</div>
-    <div class="c-info"><div class="c-name">${c.name}</div><div class="c-role">${c.role}</div></div>
-    <a class="call-btn" href="tel:${c.phone.replace(/\\s/g,'')}">📞 ${c.phone}</a>
-  </div>`).join('');
+var emColors = ['#e03131','#e8590c','#1971c2','#5b6cf9','#d6336c','#0ca678'];
+var famColors = ['#5b6cf9','#8a4fff','#0ca678','#e8930c','#e64980','#1971c2'];
+var editingEM = -1, editingFam = -1;
 
-  const colors=['#5b6cf9','#8a4fff','#0ca678','#e8930c','#e64980','#1971c2'];
-  const fl=document.getElementById('familyList');
-  fl.innerHTML = family.map((c,i)=>`<div class="contact">
-    <div class="avatar" style="background:${colors[i%colors.length]}">${c.name.slice(0,1)}</div>
-    <div class="c-info"><div class="c-name">${c.name}</div><div class="c-role">${c.phone}</div></div>
-    <a class="call-btn" href="tel:${c.phone.replace(/\\s/g,'')}">📞 Call</a>
-    <button class="del" onclick="delContact(${i})">×</button>
-  </div>`).join('');
+function renderContacts(){
+  var em=document.getElementById('emergencyList');
+  em.innerHTML = emergency.map(function(c,i){
+    if(editingEM===i){
+      return '<div class="edit-inline"><input type="text" id="editEmName" value="'+esc(c.name)+'"><input type="text" id="editEmRole" value="'+esc(c.role)+'"><input type="text" id="editEmPhone" value="'+esc(c.phone)+'"><div class="edit-actions"><button class="btn-sm btn-cancel" onclick="editingEM=-1;renderContacts()">Cancel</button><button class="btn-sm btn-save" onclick="saveEmergency('+i+')">Save</button></div></div>';
+    }
+    return '<div class="contact emergency"><div class="avatar" style="background:'+(c.color||emColors[i%emColors.length])+'">'+c.name.slice(0,1)+'</div><div class="c-info"><div class="c-name">'+c.name+'</div><div class="c-role">'+c.role+'</div></div><a class="call-btn" href="tel:'+c.phone.replace(/ /g,'')+'">📞 '+c.phone+'</a><button class="edit-btn" onclick="editingEM='+i+';renderContacts()">✏️</button><button class="del" onclick="delEmergency('+i+')">x</button></div>';
+  }).join('');
+
+  var fl=document.getElementById('familyList');
+  fl.innerHTML = family.map(function(c,i){
+    if(editingFam===i){
+      return '<div class="edit-inline"><input type="text" id="editFamName" value="'+esc(c.name)+'"><input type="text" id="editFamPhone" value="'+esc(c.phone)+'"><div class="edit-actions"><button class="btn-sm btn-cancel" onclick="editingFam=-1;renderContacts()">Cancel</button><button class="btn-sm btn-save" onclick="saveFamily('+i+')">Save</button></div></div>';
+    }
+    return '<div class="contact"><div class="avatar" style="background:'+famColors[i%famColors.length]+'">'+c.name.slice(0,1)+'</div><div class="c-info"><div class="c-name">'+c.name+'</div><div class="c-role">'+c.phone+'</div></div><a class="call-btn" href="tel:'+c.phone.replace(/ /g,'')+'">📞 Call</a><button class="edit-btn" onclick="editingFam='+i+';renderContacts()">✏️</button><button class="del" onclick="delContact('+i+')">x</button></div>';
+  }).join('');
 }
-function addContact(){
-  const name=document.getElementById('conName').value.trim();
-  const phone=document.getElementById('conPhone').value.trim();
+
+function addEmergency(){
+  var name=document.getElementById('emName').value.trim();
+  var role=document.getElementById('emRole').value.trim();
+  var phone=document.getElementById('emPhone').value.trim();
   if(!name||!phone) return;
-  family.push({name,phone});
+  emergency.push({name:name,role:role||'',phone:phone,color:emColors[emergency.length%emColors.length]});
+  document.getElementById('emName').value='';
+  document.getElementById('emRole').value='';
+  document.getElementById('emPhone').value='';
+  renderContacts(); saveAll();
+}
+function saveEmergency(i){
+  emergency[i].name=document.getElementById('editEmName').value.trim()||emergency[i].name;
+  emergency[i].role=document.getElementById('editEmRole').value.trim();
+  emergency[i].phone=document.getElementById('editEmPhone').value.trim()||emergency[i].phone;
+  editingEM=-1; renderContacts(); saveAll();
+}
+function delEmergency(i){ emergency.splice(i,1); renderContacts(); saveAll(); }
+
+function addContact(){
+  var name=document.getElementById('conName').value.trim();
+  var phone=document.getElementById('conPhone').value.trim();
+  if(!name||!phone) return;
+  family.push({name:name,phone:phone});
   document.getElementById('conName').value='';
   document.getElementById('conPhone').value='';
-  renderContacts();
+  renderContacts(); saveAll();
 }
-function delContact(i){ family.splice(i,1); renderContacts();}
+function saveFamily(i){
+  family[i].name=document.getElementById('editFamName').value.trim()||family[i].name;
+  family[i].phone=document.getElementById('editFamPhone').value.trim()||family[i].phone;
+  editingFam=-1; renderContacts(); saveAll();
+}
+function delContact(i){ family.splice(i,1); renderContacts(); saveAll(); }
 
-// init
-initCal();
-renderCalendar(); renderSchedule(); renderSalary(); renderSupplies(); renderDelivery(); renderContacts();
+// ====== Init ======
+document.addEventListener('DOMContentLoaded', function(){
+  loadAll();
+  initCal();
+  renderCalendar(); renderSchedule(); renderSalary(); renderSupplies(); renderDelivery(); renderContacts();
+});
 </script>
 </body>
 </html>
