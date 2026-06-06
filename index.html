@@ -363,9 +363,13 @@ function renderAll(){
   renderCalendar(); renderSchedule(); renderSalary(); renderSupplies(); renderDelivery(); renderContacts();
 }
 
+var lastSaved = 0; // timestamp of last save
+
 function getDataObj(){
+  lastSaved = Date.now();
   return {schedules:schedules, salaryPaid:salaryPaid, salaryLog:salaryLog,
-    supplies:supplies, deliveries:deliveries, emergency:emergency, family:family};
+    supplies:supplies, deliveries:deliveries, emergency:emergency, family:family,
+    ts:lastSaved};
 }
 
 var STORAGE_KEY = 'wuFamily_v3';
@@ -373,13 +377,13 @@ var store = (function(){ try { return window['local'+'Storage']; } catch(e){ ret
 
 function saveAll(){
   var data = getDataObj();
-  // save to Firebase if available
+  // always save to localStorage first (most reliable)
+  try { if(store) store.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e){}
+  // then save to Firebase if available
   if(firebaseOK && dataRef){
     skipNextSync = true;
-    dataRef.set(data);
+    dataRef.set(data).then(function(){}).catch(function(){});
   }
-  // always also save to localStorage as fallback
-  try { if(store) store.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e){}
 }
 
 function startRealtimeSync(){
@@ -387,12 +391,18 @@ function startRealtimeSync(){
   dataRef.on('value', function(snapshot){
     if(skipNextSync){ skipNextSync = false; return; }
     var d = snapshot.val();
-    if(d){ applyData(d); renderAll(); }
+    if(d && d.ts && d.ts > lastSaved){
+      // only apply if Firebase data is NEWER than our last save
+      applyData(d);
+      lastSaved = d.ts;
+      renderAll();
+      // also update localStorage with this newer data
+      try { if(store) store.setItem(STORAGE_KEY, JSON.stringify(d)); } catch(e){}
+    }
   });
 }
 
 function initFirebase(){
-  // dynamically load Firebase SDK
   var s1 = document.createElement('script');
   s1.src = 'https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js';
   s1.onload = function(){
@@ -411,19 +421,32 @@ function initFirebase(){
         });
         dataRef = firebase.database().ref('appData');
         firebaseOK = true;
-        // load data from Firebase
         dataRef.once('value', function(snapshot){
           var d = snapshot.val();
-          if(d){ applyData(d); renderAll(); }
-          else { saveAll(); } // first time: push defaults
+          if(d && d.ts){
+            // Firebase has data - only use it if newer than what we loaded locally
+            if(d.ts > lastSaved){
+              applyData(d);
+              lastSaved = d.ts;
+              renderAll();
+            } else {
+              // local data is newer, push it to Firebase
+              saveAll();
+            }
+          } else {
+            // first time or no timestamp: push current data to Firebase
+            saveAll();
+          }
           startRealtimeSync();
-        }, function(){ /* read error, keep defaults */ });
-      } catch(e){ /* init failed, keep defaults */ }
+        }, function(){
+          // Firebase read error - keep using local data, no sync
+        });
+      } catch(e){}
     };
-    s2.onerror = function(){ /* SDK blocked, keep defaults */ };
+    s2.onerror = function(){};
     document.head.appendChild(s2);
   };
-  s1.onerror = function(){ /* SDK blocked, keep defaults */ };
+  s1.onerror = function(){};
   document.head.appendChild(s1);
 }
 
@@ -674,6 +697,7 @@ function loadFromLocal(){
     if(raw){
       var d = JSON.parse(raw);
       applyData(d);
+      if(d.ts) lastSaved = d.ts;
       return true;
     }
   } catch(e){}
