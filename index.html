@@ -498,7 +498,8 @@ function renderCalendar(){
     var seen = {};
     var dots = '';
     evs.forEach(function(e){
-      var col = typeMap[e.type].color;
+      var tm = typeMap[e.type] || typeMap.other;
+      var col = tm.color;
       if(!seen[col]){ seen[col]=true; dots += '<i class="cal-dot" style="background:'+col+'"></i>'; }
     });
     var cls = (ds===todayStr?'today ':'') + (ds===selectedDate?'selected':'');
@@ -514,7 +515,7 @@ function renderDayDetail(){
   var el = document.getElementById('dayEvents');
   if(!evs.length){ el.innerHTML='<div class="empty">No events on this day</div>'; return; }
   el.innerHTML = evs.map(function(s){
-    var t = typeMap[s.type];
+    var t = typeMap[s.type] || typeMap.other;
     var sub = (s.dateFrom !== s.dateTo) ? '<div class="item-sub">'+fmtRange(s)+'</div>' : '';
     return '<div class="item"><div class="dot" style="background:'+t.color+'"></div><div class="item-main"><div class="item-title">'+s.title+'</div>'+sub+'</div><span class="badge '+t.cls+'">'+t.label+'</span></div>';
   }).join('');
@@ -526,7 +527,7 @@ function renderSchedule(){
   var el = document.getElementById('scheduleList');
   if(!sorted.length){ el.innerHTML='<div class="empty">No events yet</div>'; return;}
   el.innerHTML = sorted.map(function(s){
-    var t = typeMap[s.type];
+    var t = typeMap[s.type] || typeMap.other;
     var i = schedules.indexOf(s);
     return '<div class="item"><div class="dot" style="background:'+t.color+'"></div><div class="item-main"><div class="item-title">'+s.title+'</div><div class="item-sub">'+fmtRange(s)+'</div></div><span class="badge '+t.cls+'">'+t.label+'</span><button class="del" onclick="delSchedule('+i+')">x</button></div>';
   }).join('');
