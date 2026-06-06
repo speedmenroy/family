@@ -368,11 +368,18 @@ function getDataObj(){
     supplies:supplies, deliveries:deliveries, emergency:emergency, family:family};
 }
 
+var STORAGE_KEY = 'wuFamily_v3';
+var store = (function(){ try { return window['local'+'Storage']; } catch(e){ return null; } })();
+
 function saveAll(){
+  var data = getDataObj();
+  // save to Firebase if available
   if(firebaseOK && dataRef){
     skipNextSync = true;
-    dataRef.set(getDataObj());
+    dataRef.set(data);
   }
+  // always also save to localStorage as fallback
+  try { if(store) store.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e){}
 }
 
 function startRealtimeSync(){
@@ -659,12 +666,26 @@ function saveFamily(i){
 }
 function delContact(i){ family.splice(i,1); renderContacts(); saveAll(); }
 
+// ====== Load from localStorage fallback ======
+function loadFromLocal(){
+  try {
+    var raw = store ? store.getItem(STORAGE_KEY) : null;
+    if(raw){
+      var d = JSON.parse(raw);
+      applyData(d);
+      return true;
+    }
+  } catch(e){}
+  return false;
+}
+
 // ====== Init ======
 document.addEventListener('DOMContentLoaded', function(){
-  useDefaults();
+  // try localStorage first for instant display
+  if(!loadFromLocal()) useDefaults();
   initCal();
   renderAll();
-  // load Firebase in background - if it works, data syncs; if not, defaults stay
+  // then load Firebase in background - if it works, data syncs over localStorage
   initFirebase();
 });
 </script>
