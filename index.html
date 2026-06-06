@@ -198,28 +198,30 @@
       <div class="sec-title" style="justify-content:center;">💰 Rose's Salary</div>
       <div class="salary-status" id="roseStatus">Not Paid</div>
       <div id="rosePaidDate" style="font-size:14px;color:#666;margin:4px 0 8px;"></div>
-      <div style="font-size:13px;color:#888;">Pay day: 1st of every month</div>
-      <div style="margin-top:16px; display:flex; gap:8px;">
-        <button class="btn btn-primary btn-full" onclick="toggleRose()">Mark as Paid ✓</button>
+      <div class="add-row" style="justify-content:center;margin-top:10px;">
+        <input type="date" id="roseDate" style="flex:0 1 170px;">
+        <button class="btn btn-primary" onclick="addRosePayment()">Mark Paid ✓</button>
       </div>
     </div>
     <div class="card">
       <div class="sec-title">🗓️ Rose Payment History</div>
       <div id="roseLog"></div>
+      <div class="empty" id="roseLogEmpty" style="display:none;">No payment records</div>
     </div>
 
     <div class="card salary-box" style="margin-top:4px;">
       <div class="sec-title" style="justify-content:center;">💵 Fung's Pocket Money</div>
       <div class="salary-status" id="fungStatus">Not Paid</div>
       <div id="fungPaidDate" style="font-size:14px;color:#666;margin:4px 0 8px;"></div>
-      <div style="font-size:13px;color:#888;">Monthly pocket money</div>
-      <div style="margin-top:16px; display:flex; gap:8px;">
-        <button class="btn btn-primary btn-full" onclick="toggleFung()">Mark as Paid ✓</button>
+      <div class="add-row" style="justify-content:center;margin-top:10px;">
+        <input type="date" id="fungDate" style="flex:0 1 170px;">
+        <button class="btn btn-primary" onclick="addFungPayment()">Mark Paid ✓</button>
       </div>
     </div>
     <div class="card">
       <div class="sec-title">🗓️ Fung Payment History</div>
       <div id="fungLog"></div>
+      <div class="empty" id="fungLogEmpty" style="display:none;">No payment records</div>
     </div>
   </div>
 
@@ -595,52 +597,61 @@ function fmtMMDDYYYY(d){
   var p = d.split('-');
   return p[1]+'/'+p[2]+'/'+p[0];
 }
+function monthLabel(dateStr){
+  var p = dateStr.split('-');
+  return MONTHS[parseInt(p[1],10)-1]+' '+p[0];
+}
 function renderSalary(){
   // Rose
   var rst = document.getElementById('roseStatus');
-  rst.textContent = rosePaid ? 'Paid \u2713' : 'Not Paid';
-  rst.className = 'salary-status ' + (rosePaid?'paid':'unpaid');
+  rst.textContent = roseLog.length ? 'Paid \u2713' : 'Not Paid';
+  rst.className = 'salary-status ' + (roseLog.length?'paid':'unpaid');
   var rpd = document.getElementById('rosePaidDate');
-  if(rosePaid && roseLog.length){
-    rpd.textContent = 'Paid at: '+fmtMMDDYYYY(roseLog[0].date);
-  } else { rpd.textContent = ''; }
+  rpd.textContent = roseLog.length ? 'Last paid at: '+fmtMMDDYYYY(roseLog[0].date) : '';
+  // set date picker to today
+  document.getElementById('roseDate').value = new Date().toISOString().slice(0,10);
   var rlog = document.getElementById('roseLog');
-  rlog.innerHTML = roseLog.map(function(l){
-    return '<div class="item"><div class="dot" style="background:#0ca678"></div><div class="item-main"><div class="item-title">'+l.month+'</div><div class="item-sub">Paid at: '+fmtMMDDYYYY(l.date)+'</div></div><span class="badge tag-holiday">Paid</span></div>';
+  document.getElementById('roseLogEmpty').style.display = roseLog.length ? 'none' : 'block';
+  rlog.innerHTML = roseLog.map(function(l,i){
+    return '<div class="item"><div class="dot" style="background:#0ca678"></div><div class="item-main"><div class="item-title">'+l.month+'</div><div class="item-sub">Paid at: '+fmtMMDDYYYY(l.date)+'</div></div><span class="badge tag-holiday">Paid</span><button class="del" onclick="delRosePayment('+i+')">x</button></div>';
   }).join('');
   // Fung
   var fst = document.getElementById('fungStatus');
-  fst.textContent = fungPaid ? 'Paid \u2713' : 'Not Paid';
-  fst.className = 'salary-status ' + (fungPaid?'paid':'unpaid');
+  fst.textContent = fungLog.length ? 'Paid \u2713' : 'Not Paid';
+  fst.className = 'salary-status ' + (fungLog.length?'paid':'unpaid');
   var fpd = document.getElementById('fungPaidDate');
-  if(fungPaid && fungLog.length){
-    fpd.textContent = 'Paid at: '+fmtMMDDYYYY(fungLog[0].date);
-  } else { fpd.textContent = ''; }
+  fpd.textContent = fungLog.length ? 'Last paid at: '+fmtMMDDYYYY(fungLog[0].date) : '';
+  document.getElementById('fungDate').value = new Date().toISOString().slice(0,10);
   var flog = document.getElementById('fungLog');
-  flog.innerHTML = fungLog.map(function(l){
-    return '<div class="item"><div class="dot" style="background:#5b6cf9"></div><div class="item-main"><div class="item-title">'+l.month+'</div><div class="item-sub">Paid at: '+fmtMMDDYYYY(l.date)+'</div></div><span class="badge tag-school">Paid</span></div>';
+  document.getElementById('fungLogEmpty').style.display = fungLog.length ? 'none' : 'block';
+  flog.innerHTML = fungLog.map(function(l,i){
+    return '<div class="item"><div class="dot" style="background:#5b6cf9"></div><div class="item-main"><div class="item-title">'+l.month+'</div><div class="item-sub">Paid at: '+fmtMMDDYYYY(l.date)+'</div></div><span class="badge tag-school">Paid</span><button class="del" onclick="delFungPayment('+i+')">x</button></div>';
   }).join('');
 }
-function toggleRose(){
-  rosePaid = !rosePaid;
-  if(rosePaid){
-    var now=new Date();
-    var m = MONTHS[now.getMonth()]+' '+now.getFullYear();
-    if(!roseLog.find(function(l){return l.month===m;})){
-      roseLog.unshift({month:m, date:now.toISOString().slice(0,10)});
-    }
-  }
+function addRosePayment(){
+  var d = document.getElementById('roseDate').value;
+  if(!d) return;
+  var m = monthLabel(d);
+  roseLog.unshift({month:m, date:d});
+  rosePaid = true;
   renderSalary(); saveAll();
 }
-function toggleFung(){
-  fungPaid = !fungPaid;
-  if(fungPaid){
-    var now=new Date();
-    var m = MONTHS[now.getMonth()]+' '+now.getFullYear();
-    if(!fungLog.find(function(l){return l.month===m;})){
-      fungLog.unshift({month:m, date:now.toISOString().slice(0,10)});
-    }
-  }
+function delRosePayment(i){
+  roseLog.splice(i,1);
+  if(!roseLog.length) rosePaid = false;
+  renderSalary(); saveAll();
+}
+function addFungPayment(){
+  var d = document.getElementById('fungDate').value;
+  if(!d) return;
+  var m = monthLabel(d);
+  fungLog.unshift({month:m, date:d});
+  fungPaid = true;
+  renderSalary(); saveAll();
+}
+function delFungPayment(i){
+  fungLog.splice(i,1);
+  if(!fungLog.length) fungPaid = false;
   renderSalary(); saveAll();
 }
 
