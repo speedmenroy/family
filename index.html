@@ -196,16 +196,30 @@
   <div class="page" id="page-salary">
     <div class="card salary-box">
       <div class="sec-title" style="justify-content:center;">💰 Rose's Salary</div>
-      <p class="subtitle" style="text-align:center;" id="salaryMonth"></p>
-      <div class="salary-status" id="salaryStatus">Not Paid</div>
+      <div class="salary-status" id="roseStatus">Not Paid</div>
+      <div id="rosePaidDate" style="font-size:14px;color:#666;margin:4px 0 8px;"></div>
       <div style="font-size:13px;color:#888;">Pay day: 1st of every month</div>
       <div style="margin-top:16px; display:flex; gap:8px;">
-        <button class="btn btn-primary btn-full" onclick="toggleSalary()">Mark as Paid ✓</button>
+        <button class="btn btn-primary btn-full" onclick="toggleRose()">Mark as Paid ✓</button>
       </div>
     </div>
     <div class="card">
-      <div class="sec-title">🗓️ Payment History</div>
-      <div id="salaryLog"></div>
+      <div class="sec-title">🗓️ Rose Payment History</div>
+      <div id="roseLog"></div>
+    </div>
+
+    <div class="card salary-box" style="margin-top:4px;">
+      <div class="sec-title" style="justify-content:center;">💵 Fung's Pocket Money</div>
+      <div class="salary-status" id="fungStatus">Not Paid</div>
+      <div id="fungPaidDate" style="font-size:14px;color:#666;margin:4px 0 8px;"></div>
+      <div style="font-size:13px;color:#888;">Monthly pocket money</div>
+      <div style="margin-top:16px; display:flex; gap:8px;">
+        <button class="btn btn-primary btn-full" onclick="toggleFung()">Mark as Paid ✓</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="sec-title">🗓️ Fung Payment History</div>
+      <div id="fungLog"></div>
     </div>
   </div>
 
@@ -282,11 +296,13 @@ var defaultSchedules = [
   {dateFrom:'2026-08-01', dateTo:'2026-08-10', type:'holiday', title:'Family trip to Japan'},
   {dateFrom:'2026-06-01', dateTo:'2026-06-01', type:'labour', title:"Rose's day off"},
 ];
-var defaultSalaryPaid = false;
-var defaultSalaryLog = [
+var defaultRosePaid = false;
+var defaultRoseLog = [
   {month:'May 2026', date:'2026-05-01'},
   {month:'April 2026', date:'2026-04-01'},
 ];
+var defaultFungPaid = false;
+var defaultFungLog = [];
 var defaultSupplies = [
   {name:'Laundry detergent', done:false},
   {name:'Tissue (1 pack)', done:false},
@@ -318,14 +334,16 @@ var dataRef = null;
 var firebaseOK = false;
 var skipNextSync = false;
 
-var schedules, salaryPaid, salaryLog, supplies, deliveries, emergency, family;
+var schedules, rosePaid, roseLog, fungPaid, fungLog, supplies, deliveries, emergency, family;
 
 function deepCopy(o){ return JSON.parse(JSON.stringify(o)); }
 
 function useDefaults(){
   schedules = deepCopy(defaultSchedules);
-  salaryPaid = defaultSalaryPaid;
-  salaryLog = deepCopy(defaultSalaryLog);
+  rosePaid = defaultRosePaid;
+  roseLog = deepCopy(defaultRoseLog);
+  fungPaid = defaultFungPaid;
+  fungLog = deepCopy(defaultFungLog);
   supplies = deepCopy(defaultSupplies);
   deliveries = deepCopy(defaultDeliveries);
   emergency = deepCopy(defaultEmergency);
@@ -341,9 +359,12 @@ function toArray(v){
 function applyData(d){
   schedules = toArray(d.schedules);
   if(!schedules.length) schedules = deepCopy(defaultSchedules);
-  salaryPaid = d.salaryPaid || false;
-  salaryLog = toArray(d.salaryLog);
-  if(!salaryLog.length) salaryLog = deepCopy(defaultSalaryLog);
+  // migrate old salaryPaid/salaryLog to rosePaid/roseLog
+  rosePaid = d.rosePaid || d.salaryPaid || false;
+  roseLog = toArray(d.roseLog || d.salaryLog);
+  if(!roseLog.length) roseLog = deepCopy(defaultRoseLog);
+  fungPaid = d.fungPaid || false;
+  fungLog = toArray(d.fungLog);
   supplies = toArray(d.supplies);
   if(!supplies.length) supplies = deepCopy(defaultSupplies);
   deliveries = toArray(d.deliveries);
@@ -367,7 +388,8 @@ var lastSaved = 0; // timestamp of last save
 
 function getDataObj(){
   lastSaved = Date.now();
-  return {schedules:schedules, salaryPaid:salaryPaid, salaryLog:salaryLog,
+  return {schedules:schedules, rosePaid:rosePaid, roseLog:roseLog,
+    fungPaid:fungPaid, fungLog:fungLog,
     supplies:supplies, deliveries:deliveries, emergency:emergency, family:family,
     ts:lastSaved};
 }
@@ -569,24 +591,54 @@ function addSchedule(){
 function delSchedule(i){ schedules.splice(i,1); renderSchedule(); renderCalendar(); saveAll(); }
 
 // ====== Salary ======
+function fmtMMDDYYYY(d){
+  var p = d.split('-');
+  return p[1]+'/'+p[2]+'/'+p[0];
+}
 function renderSalary(){
-  var now = new Date();
-  document.getElementById('salaryMonth').textContent = MONTHS[now.getMonth()]+' '+now.getFullYear();
-  var st = document.getElementById('salaryStatus');
-  st.textContent = salaryPaid ? 'Paid \u2713' : 'Not Paid';
-  st.className = 'salary-status ' + (salaryPaid?'paid':'unpaid');
-  var log = document.getElementById('salaryLog');
-  log.innerHTML = salaryLog.map(function(l){
-    return '<div class="item"><div class="dot" style="background:#0ca678"></div><div class="item-main"><div class="item-title">'+l.month+'</div><div class="item-sub">Paid on '+l.date+'</div></div><span class="badge tag-holiday">Paid</span></div>';
+  // Rose
+  var rst = document.getElementById('roseStatus');
+  rst.textContent = rosePaid ? 'Paid \u2713' : 'Not Paid';
+  rst.className = 'salary-status ' + (rosePaid?'paid':'unpaid');
+  var rpd = document.getElementById('rosePaidDate');
+  if(rosePaid && roseLog.length){
+    rpd.textContent = 'Paid at: '+fmtMMDDYYYY(roseLog[0].date);
+  } else { rpd.textContent = ''; }
+  var rlog = document.getElementById('roseLog');
+  rlog.innerHTML = roseLog.map(function(l){
+    return '<div class="item"><div class="dot" style="background:#0ca678"></div><div class="item-main"><div class="item-title">'+l.month+'</div><div class="item-sub">Paid at: '+fmtMMDDYYYY(l.date)+'</div></div><span class="badge tag-holiday">Paid</span></div>';
+  }).join('');
+  // Fung
+  var fst = document.getElementById('fungStatus');
+  fst.textContent = fungPaid ? 'Paid \u2713' : 'Not Paid';
+  fst.className = 'salary-status ' + (fungPaid?'paid':'unpaid');
+  var fpd = document.getElementById('fungPaidDate');
+  if(fungPaid && fungLog.length){
+    fpd.textContent = 'Paid at: '+fmtMMDDYYYY(fungLog[0].date);
+  } else { fpd.textContent = ''; }
+  var flog = document.getElementById('fungLog');
+  flog.innerHTML = fungLog.map(function(l){
+    return '<div class="item"><div class="dot" style="background:#5b6cf9"></div><div class="item-main"><div class="item-title">'+l.month+'</div><div class="item-sub">Paid at: '+fmtMMDDYYYY(l.date)+'</div></div><span class="badge tag-school">Paid</span></div>';
   }).join('');
 }
-function toggleSalary(){
-  salaryPaid = !salaryPaid;
-  if(salaryPaid){
+function toggleRose(){
+  rosePaid = !rosePaid;
+  if(rosePaid){
     var now=new Date();
     var m = MONTHS[now.getMonth()]+' '+now.getFullYear();
-    if(!salaryLog.find(function(l){return l.month===m;})){
-      salaryLog.unshift({month:m, date:now.toISOString().slice(0,10)});
+    if(!roseLog.find(function(l){return l.month===m;})){
+      roseLog.unshift({month:m, date:now.toISOString().slice(0,10)});
+    }
+  }
+  renderSalary(); saveAll();
+}
+function toggleFung(){
+  fungPaid = !fungPaid;
+  if(fungPaid){
+    var now=new Date();
+    var m = MONTHS[now.getMonth()]+' '+now.getFullYear();
+    if(!fungLog.find(function(l){return l.month===m;})){
+      fungLog.unshift({month:m, date:now.toISOString().slice(0,10)});
     }
   }
   renderSalary(); saveAll();
