@@ -1,394 +1,880 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="light">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>X-ray Case Lab</title>
-  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700,900&f[]=boska@400,500,700&display=swap" rel="stylesheet">
-  <style>
-    :root,[data-theme="light"]{
-      --text-xs:clamp(.75rem,.7rem + .25vw,.875rem);--text-sm:clamp(.875rem,.8rem + .35vw,1rem);--text-base:clamp(1rem,.95rem + .25vw,1.125rem);--text-lg:clamp(1.125rem,1rem + .75vw,1.5rem);--text-xl:clamp(1.5rem,1.2rem + 1.25vw,2.25rem);--text-2xl:clamp(2rem,1.2rem + 2.5vw,3.5rem);
-      --space-1:.25rem;--space-2:.5rem;--space-3:.75rem;--space-4:1rem;--space-5:1.25rem;--space-6:1.5rem;--space-8:2rem;--space-10:2.5rem;--space-12:3rem;--space-16:4rem;
-      --color-bg:#f7f6f2;--color-surface:#f9f8f5;--color-surface-2:#fbfbf9;--color-surface-offset:#f3f0ec;--color-border:#d4d1ca;--color-text:#28251d;--color-text-muted:#6e6c64;--color-text-faint:#aaa79f;--color-text-inverse:#faf8f2;--color-primary:#01696f;--color-primary-hover:#0c4e54;--color-primary-highlight:#cedcd8;--color-blue:#006494;--color-warning:#964219;--color-success:#437a22;--radius-sm:.375rem;--radius-md:.5rem;--radius-lg:.75rem;--radius-xl:1rem;--radius-full:9999px;--shadow-sm:0 1px 2px rgba(40,37,29,.06);--shadow-md:0 12px 30px rgba(40,37,29,.09);--font-display:'Boska','Georgia',serif;--font-body:'Satoshi','Inter',sans-serif;--transition:180ms cubic-bezier(.16,1,.3,1)
-    }
-    [data-theme="dark"]{--color-bg:#171614;--color-surface:#1c1b19;--color-surface-2:#201f1d;--color-surface-offset:#242320;--color-border:#393836;--color-text:#ece9e1;--color-text-muted:#b2aea5;--color-text-faint:#77746d;--color-text-inverse:#171614;--color-primary:#4f98a3;--color-primary-hover:#227f8b;--color-primary-highlight:#2d3b3c;--color-blue:#7ab2df;--color-warning:#dc986f;--color-success:#7dbe56;--shadow-sm:0 1px 2px rgba(0,0,0,.2);--shadow-md:0 12px 30px rgba(0,0,0,.32)}
-    *{box-sizing:border-box;margin:0;padding:0} html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased} body{font-family:var(--font-body);font-size:var(--text-base);line-height:1.6;background:var(--color-bg);color:var(--color-text);min-height:100dvh} img,svg{display:block;max-width:100%;height:auto} button,input,select{font:inherit;color:inherit} button{cursor:pointer;border:none;background:none} a{text-decoration:none;color:inherit} :focus-visible{outline:2px solid var(--color-primary);outline-offset:3px;border-radius:var(--radius-sm)} .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
-    .app{display:grid;grid-template-columns:300px 1fr;min-height:100dvh}.sidebar{position:sticky;top:0;height:100dvh;overflow:auto;background:linear-gradient(180deg,var(--color-surface),var(--color-surface-2));border-right:1px solid color-mix(in oklab,var(--color-text) 10%,transparent);padding:var(--space-6)}.main{padding:clamp(var(--space-4),2vw,var(--space-8));display:grid;gap:var(--space-6)}
-    .brand{display:flex;gap:var(--space-3);align-items:center;margin-bottom:var(--space-6)} .brand svg{width:48px;height:48px;color:var(--color-primary)} .brand h1{font-family:var(--font-display);font-size:var(--text-xl);line-height:1}.brand p{font-size:var(--text-sm);color:var(--color-text-muted)}
-    .surface,.hero,.case-card,.viewer,.side-card,.stat{background:var(--color-surface);border:1px solid color-mix(in oklab,var(--color-text) 10%,transparent);border-radius:var(--radius-xl);box-shadow:var(--shadow-sm)}
-    .surface,.side-card,.viewer{padding:var(--space-4)} .hero{padding:clamp(var(--space-5),3vw,var(--space-8));display:grid;grid-template-columns:1.15fr .85fr;gap:var(--space-6);align-items:center;background:radial-gradient(circle at top right,color-mix(in oklab,var(--color-primary) 12%,transparent),transparent 40%),var(--color-surface)}
-    .eyebrow{font-size:var(--text-sm);text-transform:uppercase;letter-spacing:.12em;color:var(--color-primary);margin-bottom:var(--space-3)} h2{font-family:var(--font-display);font-size:var(--text-2xl);line-height:1.02;max-width:12ch;margin-bottom:var(--space-3)} .muted{color:var(--color-text-muted)}
-    .controls{display:grid;gap:var(--space-3);margin-bottom:var(--space-4)} .label{font-size:var(--text-xs);letter-spacing:.08em;text-transform:uppercase;color:var(--color-text-muted);margin-bottom:6px} select,.search{width:100%;min-height:44px;background:var(--color-surface-offset);border:1px solid color-mix(in oklab,var(--color-text) 10%,transparent);border-radius:var(--radius-lg);padding:0 var(--space-3)}
-    .theme-btn,.btn,.tag,.nav-btn{transition:all var(--transition)} .theme-btn,.btn,.nav-btn{min-height:44px;padding:0 var(--space-4);border-radius:var(--radius-full);display:inline-flex;align-items:center;justify-content:center;gap:10px;border:1px solid color-mix(in oklab,var(--color-text) 10%,transparent)} .btn.primary{background:var(--color-primary);color:var(--color-text-inverse);border-color:transparent}.btn.secondary,.nav-btn,.theme-btn{background:var(--color-surface-2)}
-    .sidebar-actions,.hero-actions{display:flex;gap:var(--space-3);flex-wrap:wrap}.list{display:grid;gap:var(--space-2)} .nav-btn{text-align:left;justify-content:flex-start;width:100%}.nav-btn.active{background:var(--color-primary-highlight);border-color:color-mix(in oklab,var(--color-primary) 28%,transparent)}
-    .stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-4)} .stat{padding:var(--space-4)} .stat strong{font-size:var(--text-xl);line-height:1}
-    .workspace{display:grid;grid-template-columns:1.1fr .9fr;gap:var(--space-6)} .case-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-4)} .case-card{overflow:hidden} .case-card img{width:100%;aspect-ratio:4/3;object-fit:cover;background:var(--color-surface-offset)} .case-card .body{padding:var(--space-4)} .tag{display:inline-flex;padding:6px 10px;border-radius:var(--radius-full);font-size:var(--text-xs);background:var(--color-surface-offset);color:var(--color-text-muted);border:1px solid color-mix(in oklab,var(--color-text) 10%,transparent);margin-bottom:var(--space-2)}
-    .viewer img{width:100%;border-radius:var(--radius-lg);background:var(--color-surface-offset)} .detail{display:grid;gap:var(--space-4)} .accordion{display:grid;gap:var(--space-3)} .panel{background:var(--color-surface-offset);border-radius:var(--radius-lg);padding:var(--space-3)} .panel button{width:100%;display:flex;justify-content:space-between;align-items:center;text-align:left;font-weight:700}.panel-content{display:none;padding-top:var(--space-3);color:var(--color-text-muted)} .panel.open .panel-content{display:block}
-    .checklist{display:grid;gap:var(--space-3)} .check{display:flex;gap:var(--space-3);align-items:flex-start;padding:var(--space-3);background:var(--color-surface-offset);border-radius:var(--radius-lg)} .check input{margin-top:4px;width:18px;height:18px;accent-color:var(--color-primary)}
-    .small{font-size:var(--text-sm)} .films{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--space-4)} .film{background:var(--color-surface);border:1px solid color-mix(in oklab,var(--color-text) 10%,transparent);border-radius:var(--radius-xl);padding:var(--space-4)} .film img{border-radius:var(--radius-lg);aspect-ratio:4/3;object-fit:cover;width:100%;background:var(--color-surface-offset)}
-    @media (max-width:1024px){.app,.hero,.workspace{grid-template-columns:1fr}.sidebar{position:relative;height:auto}.case-grid,.films,.stats{grid-template-columns:1fr 1fr}} @media (max-width:680px){.case-grid,.films,.stats{grid-template-columns:1fr}}
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WU's Family</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body {
+    font-family:-apple-system,"Segoe UI",Roboto,sans-serif;
+    background:#f0f2f5; color:#1a1a2e; padding-bottom:80px;
+  }
+  header {
+    background:linear-gradient(135deg,#5b6cf9,#8a4fff);
+    color:#fff; padding:18px 16px 16px; position:sticky; top:0; z-index:50;
+    box-shadow:0 2px 12px rgba(0,0,0,.12);
+  }
+  header h1 { font-size:20px; display:flex; align-items:center; gap:8px;}
+  header p { font-size:12px; opacity:.85; margin-top:2px;}
+  .container { max-width:600px; margin:0 auto; padding:16px; }
+  .page { display:none; animation:fade .25s ease;}
+  .page.active { display:block;}
+  @keyframes fade { from{opacity:0;transform:translateY(6px);} to{opacity:1;transform:none;} }
+
+  .card {
+    background:#fff; border-radius:16px; padding:14px; margin-bottom:12px;
+    box-shadow:0 2px 8px rgba(0,0,0,.05);
+  }
+  .sec-title { font-size:16px; font-weight:700; margin:6px 0 12px; display:flex; align-items:center; gap:6px;}
+
+  .item {
+    display:flex; align-items:flex-start; gap:10px; padding:10px 0;
+    border-bottom:1px solid #f0f0f3;
+  }
+  .item:last-child { border-bottom:none;}
+  .dot { width:10px; height:10px; border-radius:50%; margin-top:6px; flex-shrink:0;}
+  .item-main { flex:1; }
+  .item-title { font-size:14px; font-weight:600;}
+  .item-sub { font-size:12px; color:#888; margin-top:2px;}
+  .badge { font-size:11px; padding:2px 8px; border-radius:20px; font-weight:600; white-space:nowrap;}
+
+  .tag-public{background:#ffe3e3;color:#e03131;}
+  .tag-school{background:#e3f0ff;color:#1971c2;}
+  .tag-labour{background:#fff3bf;color:#e8930c;}
+  .tag-holiday{background:#e6fcf5;color:#0ca678;}
+  .tag-other{background:#f3e8ff;color:#7c3aed;}
+
+  .del { color:#ff6b6b; background:none; border:none; font-size:18px; cursor:pointer; padding:0 4px;}
+  .check { width:22px; height:22px; flex-shrink:0; cursor:pointer; accent-color:#5b6cf9; margin-top:3px;}
+  .done .item-title { text-decoration:line-through; color:#bbb;}
+
+  .salary-box { text-align:center; padding:18px;}
+  .salary-status { font-size:26px; font-weight:800; margin:8px 0;}
+  .paid { color:#0ca678;} .unpaid{ color:#e03131;}
+  .btn {
+    border:none; border-radius:12px; padding:11px 16px; font-size:14px; font-weight:600;
+    cursor:pointer; transition:.15s; font-family:inherit;
+  }
+  .btn-primary{ background:#5b6cf9; color:#fff;}
+  .btn-primary:active{ transform:scale(.96);}
+  .btn-full{ width:100%;}
+
+  .contact {
+    display:flex; align-items:center; gap:12px; padding:11px 0; border-bottom:1px solid #f0f0f3;
+  }
+  .contact:last-child{ border-bottom:none;}
+  .avatar {
+    width:42px; height:42px; border-radius:50%; display:flex; align-items:center;
+    justify-content:center; color:#fff; font-weight:700; font-size:16px; flex-shrink:0;
+  }
+  .c-info{ flex:1;}
+  .c-name{ font-weight:600; font-size:14px;}
+  .c-role{ font-size:12px; color:#888;}
+  .call-btn{
+    background:#0ca678; color:#fff; text-decoration:none; padding:8px 14px;
+    border-radius:20px; font-size:13px; font-weight:600; white-space:nowrap;
+  }
+  .emergency .call-btn{ background:#e03131;}
+
+  .add-row { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap;}
+  input,select{
+    flex:1; min-width:0; padding:10px; border:1px solid #ddd; border-radius:10px;
+    font-size:14px; font-family:inherit;
+  }
+  input:focus,select:focus{ outline:none; border-color:#5b6cf9;}
+
+  nav {
+    position:fixed; bottom:0; left:0; right:0; background:#fff; display:flex;
+    box-shadow:0 -2px 12px rgba(0,0,0,.08); z-index:60;
+  }
+  nav button {
+    flex:1; border:none; background:none; padding:9px 2px 10px; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; gap:3px; color:#999; font-family:inherit;
+  }
+  nav button .ic{ font-size:20px;}
+  nav button span{ font-size:11px;}
+  nav button.active{ color:#5b6cf9;}
+
+  .subtitle{ font-size:12px; color:#aaa; margin:-6px 0 14px 2px;}
+  .empty{ text-align:center; color:#bbb; font-size:13px; padding:14px;}
+  .notice{ background:#fff8e1; color:#a06a00; font-size:11px; padding:8px 12px; border-radius:10px; margin-bottom:12px; line-height:1.5;}
+
+  .edit-btn{ color:#5b6cf9; background:none; border:none; font-size:14px; cursor:pointer; padding:2px 6px;}
+  .edit-inline{ display:flex; flex-direction:column; gap:6px; padding:10px 0; border-bottom:1px solid #f0f0f3;}
+  .edit-inline:last-child{ border-bottom:none;}
+  .edit-inline input{ padding:8px; border:1px solid #ddd; border-radius:8px; font-size:14px; font-family:inherit;}
+  .edit-inline input:focus{ outline:none; border-color:#5b6cf9;}
+  .edit-actions{ display:flex; gap:6px; justify-content:flex-end;}
+  .btn-sm{ padding:6px 14px; font-size:12px; border-radius:8px; border:none; cursor:pointer; font-weight:600; font-family:inherit;}
+  .btn-save{ background:#0ca678; color:#fff;}
+  .btn-cancel{ background:#eee; color:#666;}
+
+  /* ===== Calendar ===== */
+  .cal-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;}
+  .cal-head h3 { font-size:16px; font-weight:700;}
+  .cal-nav { background:#eef0fb; color:#5b6cf9; border:none; width:34px; height:34px;
+    border-radius:10px; font-size:18px; cursor:pointer; font-weight:700;}
+  .cal-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:3px;}
+  .cal-dow { text-align:center; font-size:11px; color:#aaa; font-weight:600; padding:4px 0;}
+  .cal-cell { aspect-ratio:1; border-radius:9px; display:flex; flex-direction:column;
+    align-items:center; padding-top:5px; font-size:13px; position:relative; cursor:pointer;
+    background:#f7f8fc; transition:.12s;}
+  .cal-cell.empty-cell{ background:transparent; cursor:default;}
+  .cal-cell.today { background:#5b6cf9; color:#fff; font-weight:700;}
+  .cal-cell.selected { box-shadow:0 0 0 2px #5b6cf9 inset;}
+  .cal-cell:active{ transform:scale(.94);}
+  .cal-dots { display:flex; gap:2px; margin-top:3px; flex-wrap:wrap; justify-content:center;}
+  .cal-dot { width:6px; height:6px; border-radius:50%;}
+  .legend { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; font-size:11px; color:#666;}
+  .legend span{ display:flex; align-items:center; gap:4px;}
+  .legend .lg-dot{ width:9px; height:9px; border-radius:50%;}
+  .day-detail { margin-top:12px;}
+
+  /* ===== Summary Dashboard ===== */
+  .sum-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px;}
+  .sum-widget {
+    background:#fff; border-radius:14px; padding:14px; cursor:pointer;
+    box-shadow:0 2px 8px rgba(0,0,0,.05); transition:.15s;
+    display:flex; flex-direction:column; gap:6px;
+  }
+  .sum-widget:active{ transform:scale(.97);}
+  .sum-head { display:flex; align-items:center; gap:6px; font-size:13px; font-weight:700; color:#555;}
+  .sum-head .sum-ic { font-size:18px;}
+  .sum-num { font-size:22px; font-weight:800; line-height:1;}
+  .sum-label { font-size:11px; color:#999; line-height:1.3;}
+  .sum-wide { grid-column:1 / -1; }
+  .sum-row { display:flex; align-items:center; gap:8px; padding:5px 0; font-size:13px;}
+  .sum-row .dot { margin-top:0;}
+  .sum-row-title { flex:1; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+  .sum-row-sub { font-size:11px; color:#999; flex-shrink:0;}
+  .sum-pill {
+    display:inline-block; font-size:11px; padding:2px 8px; border-radius:10px; font-weight:600;
+  }
+  .sum-paid { background:#e6fcf5; color:#0ca678;}
+  .sum-unpaid { background:#ffe3e3; color:#e03131;}
+  .sum-divider { width:1px; background:#eee; align-self:stretch; margin:0 4px;}
+  .sum-pay-col { flex:1; text-align:center; }
+  .sum-pay-col .sum-num { font-size:14px; margin:4px 0 2px;}
+  .sum-pay-col .sum-label { font-size:10px;}
+</style>
 </head>
 <body>
-  <div class="app">
-    <aside class="sidebar">
-      <div class="brand">
-        <svg viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.2" aria-label="X-ray Case Lab logo"><circle cx="24" cy="24" r="20"></circle><path d="M14 32 24 14l10 18"></path><path d="M18 28h12"></path><path d="M24 14v20"></path></svg>
-        <div><h1>X-ray Case Lab</h1><p>Case-based self-study for plain films</p></div>
+
+<header>
+  <h1>🏠 WU's Family</h1>
+</header>
+
+<div class="container">
+
+  <!-- ============ CALENDAR ============ -->
+  <div class="page active" id="page-calendar">
+    <div class="card">
+      <div class="cal-head">
+        <button class="cal-nav" onclick="changeMonth(-1)">‹</button>
+        <h3 id="calTitle"></h3>
+        <button class="cal-nav" onclick="changeMonth(1)">›</button>
       </div>
-      <div class="surface" style="margin-bottom:var(--space-4)">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:var(--space-3)">
-          <div><strong>Theme</strong><div class="small muted">Light or dark mode</div></div>
-          <button class="theme-btn" id="themeToggle" aria-label="Toggle theme"></button>
-        </div>
+      <div class="cal-grid" id="calDow"></div>
+      <div class="cal-grid" id="calGrid" style="margin-top:3px;"></div>
+      <div class="legend">
+        <span><i class="lg-dot" style="background:#e03131"></i>Public Holiday</span>
+        <span><i class="lg-dot" style="background:#1971c2"></i>School Break</span>
+        <span><i class="lg-dot" style="background:#e8930c"></i>Labour Day</span>
+        <span><i class="lg-dot" style="background:#0ca678"></i>Vacation</span>
+        <span><i class="lg-dot" style="background:#7c3aed"></i>Other</span>
       </div>
-      <div class="controls surface">
-        <div>
-          <div class="label">Region</div>
-          <select id="regionFilter"></select>
-        </div>
-        <div>
-          <div class="label">Level</div>
-          <select id="levelFilter">
-            <option value="all">All levels</option>
-            <option value="foundation">Foundation</option>
-            <option value="core">Core</option>
-            <option value="advanced">Advanced</option>
-          </select>
-        </div>
-        <div>
-          <div class="label">Search</div>
-          <input id="searchInput" class="search" type="search" placeholder="Search chest, bowel, hip, fracture...">
-        </div>
-      </div>
-      <div class="side-card" style="margin-top:var(--space-4)">
-        <strong>Case shortcuts</strong>
-        <div class="list" id="shortcutList" style="margin-top:var(--space-3)"></div>
-      </div>
-    </aside>
+    </div>
+    <div class="card day-detail">
+      <div class="sec-title" id="dayTitle">📌 Selected Day</div>
+      <div id="dayEvents"></div>
+    </div>
 
-    <main class="main">
-      <section class="hero">
-        <div>
-          <div class="eyebrow">Built fresh</div>
-          <h2>Study X-ray cases like a mini learning station</h2>
-          <p class="muted">This is a completely new web app. Instead of a lesson-by-lesson handbook, it works like a case lab: choose a region, open a film, review clues, reveal the answer, and practise your handover wording.</p>
-          <div class="hero-actions" style="margin-top:var(--space-5)">
-            <button class="btn primary" id="randomCaseBtn">Open random case</button>
-            <button class="btn secondary" id="showCoreBtn">Show core cases</button>
-          </div>
-        </div>
-        <div class="surface" style="background:linear-gradient(180deg,color-mix(in oklab,var(--color-primary) 8%,transparent),transparent),var(--color-surface-offset)">
-          <svg viewBox="0 0 500 300" fill="none" aria-hidden="true">
-            <rect x="14" y="14" width="472" height="272" rx="24" fill="currentColor" opacity="0.05"/>
-            <rect x="34" y="34" width="220" height="232" rx="18" fill="currentColor" opacity="0.08"/>
-            <rect x="274" y="34" width="192" height="108" rx="18" fill="currentColor" opacity="0.08"/>
-            <rect x="274" y="158" width="192" height="108" rx="18" fill="currentColor" opacity="0.08"/>
-            <circle cx="144" cy="116" r="44" stroke="currentColor" opacity="0.3" stroke-width="2"/>
-            <path d="M144 72v88M100 116h88" stroke="currentColor" opacity="0.3" stroke-width="2"/>
-            <path d="M98 194h92M114 214h60M104 234h80" stroke="currentColor" opacity="0.3" stroke-width="3" stroke-linecap="round"/>
-            <path d="M334 88h72M334 108h50M330 206h82M330 226h112" stroke="currentColor" opacity="0.22" stroke-width="8" stroke-linecap="round"/>
-          </svg>
-        </div>
-      </section>
-
-      <section class="stats">
-        <article class="stat"><div class="small muted">Visible cases</div><strong id="caseCount">0</strong></article>
-        <article class="stat"><div class="small muted">Current region</div><strong id="regionCount">All</strong></article>
-        <article class="stat"><div class="small muted">Current case</div><strong id="currentLabel">—</strong></article>
-      </section>
-
-      <section class="workspace">
-        <section>
-          <div class="surface" style="margin-bottom:var(--space-4)">
-            <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-3);flex-wrap:wrap">
-              <div>
-                <div class="tag">Case list</div>
-                <h3 style="font-size:var(--text-lg)">Choose a film to review</h3>
-                <p class="muted small">Cases below stay filtered by region, level, and search terms.</p>
-              </div>
-            </div>
-          </div>
-          <div class="case-grid" id="caseGrid"></div>
-        </section>
-
-        <aside class="viewer" id="viewer">
-          <div class="detail">
-            <div>
-              <div class="tag" id="viewerTag">Case</div>
-              <h3 id="viewerTitle" style="font-size:var(--text-xl);line-height:1.1">Select a case</h3>
-              <p id="viewerSubtitle" class="muted">Open any case card to see the film and interactive explanation.</p>
-            </div>
-            <img id="viewerImage" src="https://pplx-res.cloudinary.com/image/upload/pplx_search_images/01cb2b3880ca5f8e6b573e02c900a0c1f5ce7567.jpg" alt="X-ray film viewer placeholder" width="630" height="630" loading="lazy">
-            <div class="accordion">
-              <div class="panel open">
-                <button type="button">Systematic approach <span>+</span></button>
-                <div class="panel-content" id="systemContent"></div>
-              </div>
-              <div class="panel">
-                <button type="button">Key clues <span>+</span></button>
-                <div class="panel-content" id="clueContent"></div>
-              </div>
-              <div class="panel">
-                <button type="button">Likely diagnosis <span>+</span></button>
-                <div class="panel-content" id="diagnosisContent"></div>
-              </div>
-              <div class="panel">
-                <button type="button">Escalation / handover <span>+</span></button>
-                <div class="panel-content" id="handoverContent"></div>
-              </div>
-            </div>
-            <div>
-              <div class="label">Self-check</div>
-              <div class="checklist" id="checklist"></div>
-            </div>
-          </div>
-        </aside>
-      </section>
-
-      <section class="surface">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:var(--space-3);flex-wrap:wrap;margin-bottom:var(--space-4)">
-          <div>
-            <div class="tag">Film library</div>
-            <h3 style="font-size:var(--text-lg)">Reference films</h3>
-            <p class="muted small">These sample films mirror high-yield topics: normal chest anatomy, abdominal obstruction, and hip fracture review.</p>
-          </div>
-        </div>
-        <div class="films">
-          <article class="film">
-            <h4>Normal chest film</h4>
-            <img src="https://pplx-res.cloudinary.com/image/upload/pplx_search_images/01cb2b3880ca5f8e6b573e02c900a0c1f5ce7567.jpg" alt="Normal chest radiograph" width="630" height="630" loading="lazy">
-            <p class="muted small" style="margin-top:var(--space-3)">Use it to practise trachea, lung fields, heart size, diaphragm, and bony review.</p>
-          </article>
-          <article class="film">
-            <h4>Abdominal obstruction film</h4>
-            <img src="https://pplx-res.cloudinary.com/image/upload/pplx_search_images/dd1d72528aed102a29590c72bf01107938b5fb80.jpg" alt="Abdominal radiograph showing small bowel obstruction" width="900" height="464" loading="lazy">
-            <p class="muted small" style="margin-top:var(--space-3)">Review bowel calibre, central loop pattern, and how obstruction differs from a normal gas pattern.</p>
-          </article>
-          <article class="film">
-            <h4>Hip fracture film</h4>
-            <img src="https://upload.wikimedia.org/wikipedia/commons/1/11/Cdm_hip_fracture_343.jpg" alt="Pelvis and hip radiograph showing femoral neck fracture" width="2367" height="1793" loading="lazy">
-            <p class="muted small" style="margin-top:var(--space-3)">Trace the femoral head, neck cortex, trabecular pattern, and Shenton line.</p>
-          </article>
-        </div>
-      </section>
-    </main>
+    <!-- Summary Dashboard -->
+    <div class="sec-title" style="margin-top:6px;">📊 Dashboard</div>
+    <div class="sum-grid" id="summaryGrid"></div>
   </div>
 
-  <script>
-    const cases = [
-      {
-        id:'cxr-normal', title:'Normal chest film', region:'Chest', level:'foundation',
-        tag:'Chest • Foundation', subtitle:'Practise a safe baseline read before you move to pathology.',
-        image:'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/01cb2b3880ca5f8e6b573e02c900a0c1f5ce7567.jpg', width:630, height:630,
-        system:'Use RIPE first: rotation, inspiration, penetration, and exposure. Then move through airway, lungs, pleura, heart, diaphragm, and bones.',
-        clues:['Trachea is central.','Lungs are clear and symmetrical.','Heart size is not enlarged.','Costophrenic angles are sharp.'],
-        diagnosis:'No acute cardiopulmonary abnormality is seen on this example film.',
-        handover:'“This is a chest film with acceptable quality. Trachea is central, lungs are clear, heart size is not enlarged, and there is no focal opacity, pleural effusion, or pneumothorax.”'
-      },
-      {
-        id:'cxr-left-lower', title:'Left lower lobe consolidation review area', region:'Chest', level:'core',
-        tag:'Chest • Core', subtitle:'A case reminder that pathology may hide behind the heart shadow.',
-        image:'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/9b205d8ef8add1ec666714d65e36e4b8ac91c896.jpg', width:900, height:510,
-        system:'Start with film quality, then deliberately review the apices, behind the heart, and both costophrenic angles before concluding that the film is normal.',
-        clues:['Dense area behind the heart can hide lower lobe disease.','Loss of hemidiaphragm clarity suggests adjacent consolidation.','Small reactive pleural fluid may coexist.'],
-        diagnosis:'Suspicious for left lower lobe consolidation with possible small reactive effusion.',
-        handover:'“There is increased density behind the heart with reduced definition of the left hemidiaphragm, concerning for left lower lobe consolidation, and a small associated effusion may be present.”'
-      },
-      {
-        id:'axr-sbo', title:'Small bowel obstruction pattern', region:'Abdomen', level:'core',
-        tag:'Abdomen • Core', subtitle:'One of the key abdominal plain-film emergencies.',
-        image:'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/dd1d72528aed102a29590c72bf01107938b5fb80.jpg', width:900, height:464,
-        system:'Review bowel gas pattern first. Ask whether loops are central or peripheral, whether valvulae cross the full width of the bowel, and whether there is diffuse or focal dilatation.',
-        clues:['Dilated central loops favour small bowel.','Valvulae conniventes may be seen across the full width.','The overall pattern is more important than one single loop.'],
-        diagnosis:'Features are compatible with small bowel obstruction.',
-        handover:'“The abdominal film shows centrally distributed dilated small-bowel loops with an obstructive pattern, which is concerning for small bowel obstruction in the current clinical context.”'
-      },
-      {
-        id:'axr-lbo', title:'Large bowel obstruction pattern', region:'Abdomen', level:'advanced',
-        tag:'Abdomen • Advanced', subtitle:'Differentiate colonic dilatation from small bowel pattern recognition.',
-        image:'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/697f72e0ebd289c2879388cde64db185c874a945.jpg', width:900, height:525,
-        system:'Compare bowel position, calibre, and haustral appearance. Scan the whole colon and note where the gas pattern stops.',
-        clues:['Dilated colon is usually more peripheral.','Look for a cut-off point.','Large bowel pattern can coexist with small bowel dilatation if the ileocaecal valve is incompetent.'],
-        diagnosis:'Large bowel obstruction pattern.',
-        handover:'“There is marked colonic dilatation with an obstructive large-bowel pattern, and the site of transition should be considered clinically and with further imaging.”'
-      },
-      {
-        id:'hip-fracture', title:'Femoral neck fracture', region:'Lower limb', level:'core',
-        tag:'Lower limb • Core', subtitle:'A must-not-miss injury in older adults after a fall.',
-        image:'https://upload.wikimedia.org/wikipedia/commons/1/11/Cdm_hip_fracture_343.jpg', width:2367, height:1793,
-        system:'On the AP pelvis, inspect both hips side-by-side. Trace the femoral head, neck cortex, trabeculae, and Shenton line before deciding the film is normal.',
-        clues:['Cortical irregularity at the femoral neck.','Disruption of the normal smooth contour may be present.','Trabecular pattern can also look abnormal on the injured side.'],
-        diagnosis:'Femoral neck fracture / hip fracture.',
-        handover:'“After a fall, the patient cannot bear weight. The pelvis and hip film shows a suspected femoral neck fracture, which requires urgent medical and orthopaedic review.”'
-      },
-      {
-        id:'hip-comparison', title:'Subtle hip fracture by side-to-side comparison', region:'Lower limb', level:'advanced',
-        tag:'Lower limb • Advanced', subtitle:'A reminder to compare both sides when the fracture is subtle.',
-        image:'https://pplx-res.cloudinary.com/image/upload/pplx_search_images/a9de37b6bb5430fe3b7c40501b3da261a3f591b7.jpg', width:1280, height:720,
-        system:'Use both hips for comparison. Small differences in cortical contour or trabecular pattern become more obvious when you compare the symptomatic side with the asymptomatic side.',
-        clues:['Subtle femoral-neck cortical irregularity.','Comparison increases confidence.','Clinical inability to weight-bear matters even if the film is only subtly abnormal.'],
-        diagnosis:'Likely femoral neck fracture requiring escalation.',
-        handover:'“Compared with the opposite side, the symptomatic hip shows subtle femoral-neck irregularity and fracture should be considered, especially as the patient cannot bear weight.”'
-      }
-    ];
+  <!-- ============ SCHEDULE LIST ============ -->
+  <div class="page" id="page-schedule">
+    <div class="card">
+      <div class="sec-title">📅 Schedule / Holidays</div>
+      <p class="subtitle">Public holidays, school breaks, labour days & vacations</p>
+      <div id="scheduleList"></div>
+      <div class="add-row">
+        <label style="font-size:12px;color:#888;flex:0 0 auto;padding-top:12px;">From</label>
+        <input type="date" id="schDateFrom">
+        <label style="font-size:12px;color:#888;flex:0 0 auto;padding-top:12px;">To</label>
+        <input type="date" id="schDateTo">
+      </div>
+      <div class="add-row">
+        <select id="schType">
+          <option value="public">Public Holiday</option>
+          <option value="school">School Break</option>
+          <option value="labour">Labour Day</option>
+          <option value="holiday">Vacation</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="add-row">
+        <input type="text" id="schTitle" placeholder="Event, e.g. Son's Easter break">
+        <button class="btn btn-primary" onclick="addSchedule()">Add</button>
+      </div>
+    </div>
+  </div>
 
-    const state = {
-      theme: matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
-      region:'all',
-      level:'all',
-      search:'',
-      currentId:cases[0].id,
-      checks:{}
+  <!-- ============ SALARY ============ -->
+  <div class="page" id="page-salary">
+    <div class="card salary-box">
+      <div class="sec-title" style="justify-content:center;">💰 Rose's Salary</div>
+      <div class="salary-status" id="roseStatus">Not Paid</div>
+      <div id="rosePaidDate" style="font-size:14px;color:#666;margin:4px 0 8px;"></div>
+      <div class="add-row" style="justify-content:center;margin-top:10px;">
+        <input type="date" id="roseDate" style="flex:0 1 170px;">
+        <button class="btn btn-primary" onclick="addRosePayment()">Mark Paid ✓</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="sec-title">🗓️ Rose Payment History</div>
+      <div id="roseLog"></div>
+      <div class="empty" id="roseLogEmpty" style="display:none;">No payment records</div>
+    </div>
+
+    <div class="card salary-box" style="margin-top:4px;">
+      <div class="sec-title" style="justify-content:center;">💵 Fung's Pocket Money</div>
+      <div class="salary-status" id="fungStatus">Not Paid</div>
+      <div id="fungPaidDate" style="font-size:14px;color:#666;margin:4px 0 8px;"></div>
+      <div class="add-row" style="justify-content:center;margin-top:10px;">
+        <input type="date" id="fungDate" style="flex:0 1 170px;">
+        <button class="btn btn-primary" onclick="addFungPayment()">Mark Paid ✓</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="sec-title">🗓️ Fung Payment History</div>
+      <div id="fungLog"></div>
+      <div class="empty" id="fungLogEmpty" style="display:none;">No payment records</div>
+    </div>
+  </div>
+
+  <!-- ============ SUPPLIES ============ -->
+  <div class="page" id="page-supplies">
+    <div class="card">
+      <div class="sec-title">🛒 Shopping / Supplies</div>
+      <p class="subtitle">Anyone can add what's needed; tick off when bought</p>
+      <div id="suppliesList"></div>
+      <div class="add-row">
+        <input type="text" id="supItem" placeholder="e.g. Laundry detergent, rice, tissue">
+        <button class="btn btn-primary" onclick="addSupply()">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ DELIVERY ============ -->
+  <div class="page" id="page-delivery">
+    <div class="card">
+      <div class="sec-title">📦 Deliveries to Receive</div>
+      <p class="subtitle">Furniture, parcels — when they arrive & who receives them</p>
+      <div id="deliveryList"></div>
+      <div class="add-row">
+        <input type="text" id="delItem" placeholder="Item, e.g. IKEA sofa">
+      </div>
+      <div class="add-row">
+        <input type="date" id="delDate">
+        <input type="text" id="delWho" placeholder="Who?" style="flex:0 0 100px;">
+        <button class="btn btn-primary" onclick="addDelivery()">Add</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CONTACTS ============ -->
+  <div class="page" id="page-contacts">
+    <div class="card">
+      <div class="sec-title">🚨 Emergency Contacts</div>
+      <div id="emergencyList"></div>
+      <div class="add-row">
+        <input type="text" id="emName" placeholder="Name">
+        <input type="text" id="emRole" placeholder="Role" style="flex:0 0 100px;">
+        <input type="text" id="emPhone" placeholder="Phone" style="flex:0 0 100px;">
+        <button class="btn btn-primary" onclick="addEmergency()">Add</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="sec-title">👨‍👩‍👧 Family</div>
+      <div id="familyList"></div>
+      <div class="add-row">
+        <input type="text" id="conName" placeholder="Name, e.g. Grandpa">
+        <input type="text" id="conPhone" placeholder="Phone" style="flex:0 0 120px;">
+        <button class="btn btn-primary" onclick="addContact()">Add</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- bottom nav -->
+<nav>
+  <button class="active" data-page="calendar" onclick="go('calendar',this)"><span class="ic">🗓️</span><span>Calendar</span></button>
+  <button data-page="schedule" onclick="go('schedule',this)"><span class="ic">📅</span><span>Events</span></button>
+  <button data-page="salary" onclick="go('salary',this)"><span class="ic">💰</span><span>Salary</span></button>
+  <button data-page="supplies" onclick="go('supplies',this)"><span class="ic">🛒</span><span>Supplies</span></button>
+  <button data-page="delivery" onclick="go('delivery',this)"><span class="ic">📦</span><span>Delivery</span></button>
+  <button data-page="contacts" onclick="go('contacts',this)"><span class="ic">📞</span><span>Contacts</span></button>
+</nav>
+
+<script>
+// ====== Default data ======
+var defaultSchedules = [
+  {dateFrom:'2026-06-19', dateTo:'2026-06-19', type:'public', title:'Dragon Boat Festival'},
+  {dateFrom:'2026-07-13', dateTo:'2026-08-31', type:'school', title:"Son's summer break"},
+  {dateFrom:'2026-08-01', dateTo:'2026-08-10', type:'holiday', title:'Family trip to Japan'},
+  {dateFrom:'2026-06-01', dateTo:'2026-06-01', type:'labour', title:"Rose's day off"},
+];
+var defaultRosePaid = false;
+var defaultRoseLog = [
+  {month:'May 2026', date:'2026-05-01'},
+  {month:'April 2026', date:'2026-04-01'},
+];
+var defaultFungPaid = false;
+var defaultFungLog = [];
+var defaultSupplies = [
+  {name:'Laundry detergent', done:false},
+  {name:'Tissue (1 pack)', done:false},
+  {name:"Son's milk", done:true},
+];
+var defaultDeliveries = [
+  {item:'IKEA sofa', date:'2026-06-05', who:'Dad', done:false},
+  {item:'Parcel (SF Express)', date:'2026-06-02', who:'Rose', done:false},
+];
+var defaultEmergency = [
+  {name:'Ambulance / Fire', role:'999 Emergency', phone:'999', color:'#e03131'},
+  {name:'Southern Ambulance', role:'Non-emergency', phone:'2735 3355', color:'#e8590c'},
+  {name:'Aberdeen Police', role:'Southern District', phone:'2870 7200', color:'#1971c2'},
+  {name:'Concierge', role:'Security desk', phone:'2580 5615', color:'#5b6cf9'},
+];
+var defaultFamily = [
+  {name:'Grandpa (M)', phone:'9XXX XXXX'},
+  {name:'Grandma (M)', phone:'9XXX XXXX'},
+  {name:'Grandpa (P)', phone:'9XXX XXXX'},
+  {name:'Grandma (P)', phone:'9XXX XXXX'},
+  {name:'Grand-aunt', phone:'9XXX XXXX'},
+  {name:'Grand-uncle', phone:'9XXX XXXX'},
+  {name:'Uncle', phone:'9XXX XXXX'},
+  {name:'Rose', phone:'9XXX XXXX'},
+];
+
+// ====== Firebase setup (loaded dynamically) ======
+var dataRef = null;
+var firebaseOK = false;
+var skipNextSync = false;
+
+var schedules, rosePaid, roseLog, fungPaid, fungLog, supplies, deliveries, emergency, family;
+
+function deepCopy(o){ return JSON.parse(JSON.stringify(o)); }
+
+function useDefaults(){
+  schedules = deepCopy(defaultSchedules);
+  rosePaid = defaultRosePaid;
+  roseLog = deepCopy(defaultRoseLog);
+  fungPaid = defaultFungPaid;
+  fungLog = deepCopy(defaultFungLog);
+  supplies = deepCopy(defaultSupplies);
+  deliveries = deepCopy(defaultDeliveries);
+  emergency = deepCopy(defaultEmergency);
+  family = deepCopy(defaultFamily);
+}
+
+function toArray(v){
+  if(Array.isArray(v)) return v;
+  if(v && typeof v === 'object') return Object.keys(v).sort(function(a,b){return a-b;}).map(function(k){return v[k];});
+  return [];
+}
+
+function applyData(d){
+  schedules = toArray(d.schedules);
+  if(!schedules.length) schedules = deepCopy(defaultSchedules);
+  // migrate old salaryPaid/salaryLog to rosePaid/roseLog
+  rosePaid = d.rosePaid || d.salaryPaid || false;
+  roseLog = toArray(d.roseLog || d.salaryLog);
+  if(!roseLog.length) roseLog = deepCopy(defaultRoseLog);
+  fungPaid = d.fungPaid || false;
+  fungLog = toArray(d.fungLog);
+  supplies = toArray(d.supplies);
+  if(!supplies.length) supplies = deepCopy(defaultSupplies);
+  deliveries = toArray(d.deliveries);
+  if(!deliveries.length) deliveries = deepCopy(defaultDeliveries);
+  emergency = toArray(d.emergency);
+  if(!emergency.length) emergency = deepCopy(defaultEmergency);
+  family = toArray(d.family);
+  if(!family.length) family = deepCopy(defaultFamily);
+  // migrate old single-date schedules
+  schedules = schedules.map(function(s){
+    if(s && s.date && !s.dateFrom) return {dateFrom:s.date, dateTo:s.date, type:s.type, title:s.title};
+    return s;
+  }).filter(Boolean);
+}
+
+function renderAll(){
+  renderCalendar(); renderSummary(); renderSchedule(); renderSalary(); renderSupplies(); renderDelivery(); renderContacts();
+}
+
+var lastSaved = 0; // timestamp of last save
+
+function getDataObj(){
+  lastSaved = Date.now();
+  return {schedules:schedules, rosePaid:rosePaid, roseLog:roseLog,
+    fungPaid:fungPaid, fungLog:fungLog,
+    supplies:supplies, deliveries:deliveries, emergency:emergency, family:family,
+    ts:lastSaved};
+}
+
+var STORAGE_KEY = 'wuFamily_v3';
+var store = (function(){ try { return window['local'+'Storage']; } catch(e){ return null; } })();
+
+function saveAll(){
+  var data = getDataObj();
+  // always save to localStorage first (most reliable)
+  try { if(store) store.setItem(STORAGE_KEY, JSON.stringify(data)); } catch(e){}
+  // then save to Firebase if available
+  if(firebaseOK && dataRef){
+    skipNextSync = true;
+    dataRef.set(data).then(function(){}).catch(function(){});
+  }
+}
+
+function startRealtimeSync(){
+  if(!firebaseOK || !dataRef) return;
+  dataRef.on('value', function(snapshot){
+    if(skipNextSync){ skipNextSync = false; return; }
+    var d = snapshot.val();
+    if(d && d.ts && d.ts > lastSaved){
+      // only apply if Firebase data is NEWER than our last save
+      applyData(d);
+      lastSaved = d.ts;
+      renderAll();
+      // also update localStorage with this newer data
+      try { if(store) store.setItem(STORAGE_KEY, JSON.stringify(d)); } catch(e){}
+    }
+  });
+}
+
+function initFirebase(){
+  var s1 = document.createElement('script');
+  s1.src = 'https://www.gstatic.com/firebasejs/12.14.0/firebase-app-compat.js';
+  s1.onload = function(){
+    var s2 = document.createElement('script');
+    s2.src = 'https://www.gstatic.com/firebasejs/12.14.0/firebase-database-compat.js';
+    s2.onload = function(){
+      try {
+        firebase.initializeApp({
+          apiKey: "AIzaSyBEpTHKd_ouDSQrfHIQyxe3LKpK_RRUaGI",
+          authDomain: "wu-family-633cb.firebaseapp.com",
+          databaseURL: "https://wu-family-633cb-default-rtdb.asia-southeast1.firebasedatabase.app",
+          projectId: "wu-family-633cb",
+          storageBucket: "wu-family-633cb.firebasestorage.app",
+          messagingSenderId: "133378973614",
+          appId: "1:133378973614:web:4b87bd1d3f40f96881b23f"
+        });
+        dataRef = firebase.database().ref('appData');
+        firebaseOK = true;
+        dataRef.once('value', function(snapshot){
+          var d = snapshot.val();
+          if(d && d.ts){
+            // Firebase has data - only use it if newer than what we loaded locally
+            if(d.ts > lastSaved){
+              applyData(d);
+              lastSaved = d.ts;
+              renderAll();
+            } else {
+              // local data is newer, push it to Firebase
+              saveAll();
+            }
+          } else {
+            // first time or no timestamp: push current data to Firebase
+            saveAll();
+          }
+          startRealtimeSync();
+        }, function(){
+          // Firebase read error - keep using local data, no sync
+        });
+      } catch(e){}
     };
+    s2.onerror = function(){};
+    document.head.appendChild(s2);
+  };
+  s1.onerror = function(){};
+  document.head.appendChild(s1);
+}
 
-    const $ = s => document.querySelector(s);
+const typeMap = {
+  public:{cls:'tag-public', label:'Public Holiday', color:'#e03131'},
+  school:{cls:'tag-school', label:'School Break', color:'#1971c2'},
+  labour:{cls:'tag-labour', label:'Labour Day', color:'#e8930c'},
+  holiday:{cls:'tag-holiday', label:'Vacation', color:'#0ca678'},
+  other:{cls:'tag-other', label:'Other', color:'#7c3aed'},
+};
+const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 
-    function setTheme(theme){
-      state.theme = theme;
-      document.documentElement.setAttribute('data-theme', theme);
-      $('#themeToggle').innerHTML = theme === 'dark'
-        ? '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>'
-        : '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>';
-    }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-    function filteredCases(){
-      return cases.filter(c =>
-        (state.region === 'all' || c.region === state.region) &&
-        (state.level === 'all' || c.level === state.level) &&
-        (`${c.title} ${c.region} ${c.subtitle}`.toLowerCase().includes(state.search.toLowerCase()))
-      );
-    }
+// ====== Date formatting ======
+// dd/mm/yyyy
+function fmtDMY(d){
+  var p = d.split('-');
+  return p[2]+'/'+p[1]+'/'+p[0];
+}
+// range display
+function fmtRange(s){
+  if(s.dateFrom === s.dateTo) return fmtDMY(s.dateFrom);
+  return fmtDMY(s.dateFrom) + ' to ' + fmtDMY(s.dateTo);
+}
+// long format for day detail header
+function fmtDateLong(d){
+  var dt = new Date(d+'T00:00:00');
+  return MONTHS[dt.getMonth()]+' '+dt.getDate()+', '+dt.getFullYear()+' ('+DOW[dt.getDay()]+')';
+}
+// check if a yyyy-mm-dd string falls within a schedule's range
+function dayInRange(ds, s){
+  return ds >= s.dateFrom && ds <= s.dateTo;
+}
 
-    function currentCase(){
-      return cases.find(c => c.id === state.currentId) || filteredCases()[0] || cases[0];
-    }
+// ====== Summary Dashboard ======
+function goTab(page){
+  var btn = document.querySelector('nav button[data-page="'+page+'"]');
+  if(btn) go(page, btn);
+}
+function renderSummary(){
+  var todayStr = new Date().toISOString().slice(0,10);
+  var html = '';
 
-    function openCase(id){
-      state.currentId = id;
-      renderViewer();
-      renderCaseGrid();
-    }
+  // --- Payment Status (wide card) ---
+  var roseSt = roseLog.length;
+  var fungSt = fungLog.length;
+  var roseDate = roseSt ? fmtMMDDYYYY(roseLog[0].date) : '—';
+  var fungDate = fungSt ? fmtMMDDYYYY(fungLog[0].date) : '—';
+  html += '<div class="sum-widget sum-wide" onclick="goTab(\'salary\')">';
+  html += '<div class="sum-head"><span class="sum-ic">💰</span> Payment Status</div>';
+  html += '<div style="display:flex;align-items:center;">';
+  html += '<div class="sum-pay-col"><div class="sum-label">Rose Salary</div><div class="sum-num"><span class="sum-pill '+(roseSt?'sum-paid':'sum-unpaid')+'">'+(roseSt?'Paid':'Not Paid')+'</span></div><div class="sum-label">'+roseDate+'</div></div>';
+  html += '<div class="sum-divider"></div>';
+  html += '<div class="sum-pay-col"><div class="sum-label">Fung Pocket Money</div><div class="sum-num"><span class="sum-pill '+(fungSt?'sum-paid':'sum-unpaid')+'">'+(fungSt?'Paid':'Not Paid')+'</span></div><div class="sum-label">'+fungDate+'</div></div>';
+  html += '</div></div>';
 
-    function renderFilters(){
-      const regions = ['all', ...new Set(cases.map(c => c.region))];
-      $('#regionFilter').innerHTML = regions
-        .map(r => `<option value="${r}">${r === 'all' ? 'All regions' : r}</option>`)
-        .join('');
-      $('#regionFilter').value = state.region;
-      $('#levelFilter').value = state.level;
-      $('#searchInput').value = state.search;
-    }
-
-    function renderShortcuts(){
-      const list = filteredCases().slice(0,6);
-      $('#shortcutList').innerHTML =
-        list.map(c => `<button class="nav-btn ${state.currentId===c.id?'active':''}" onclick="openCase('${c.id}')">${c.title}</button>`).join('')
-        || '<div class="muted small">No cases match the current filters.</div>';
-    }
-
-    function renderCaseGrid(){
-      const data = filteredCases();
-      $('#caseCount').textContent = data.length;
-      $('#regionCount').textContent = state.region === 'all' ? 'All' : state.region;
-
-      $('#caseGrid').innerHTML = data.map(c => `
-        <article class="case-card">
-          <img src="${c.image}" alt="${c.title} X-ray example" width="${c.width}" height="${c.height}" loading="lazy">
-          <div class="body">
-            <div class="tag">${c.tag}</div>
-            <h4>${c.title}</h4>
-            <p class="muted small" style="margin:var(--space-2) 0 var(--space-3)">${c.subtitle}</p>
-            <button class="btn secondary" onclick="openCase('${c.id}')">Open case</button>
-          </div>
-        </article>
-      `).join('') || '<div class="surface" style="padding:var(--space-6)"><p class="muted">No cases match the current filters.</p></div>';
-    }
-
-    function renderViewer(){
-      const c = currentCase();
-      state.currentId = c.id;
-      $('#currentLabel').textContent = c.title;
-      $('#viewerTag').textContent = c.tag;
-      $('#viewerTitle').textContent = c.title;
-      $('#viewerSubtitle').textContent = c.subtitle;
-
-      const img = $('#viewerImage');
-      img.src = c.image;
-      img.alt = c.title + ' X-ray film';
-      img.width = c.width;
-      img.height = c.height;
-
-      $('#systemContent').textContent = c.system;
-      $('#clueContent').innerHTML =
-        '<ul style="padding-left:1.1rem;display:grid;gap:var(--space-2)">' +
-        c.clues.map(x => `<li>${x}</li>`).join('') +
-        '</ul>';
-      $('#diagnosisContent').textContent = c.diagnosis;
-      $('#handoverContent').textContent = c.handover;
-
-      const checks = [
-        'I reviewed the film systematically.',
-        'I can describe the key findings.',
-        'I can explain why the case matters clinically.'
-      ];
-
-      $('#checklist').innerHTML = checks.map((label,i) =>
-        `<label class="check"><input type="checkbox" data-check="${c.id}:${i}" ${state.checks[`${c.id}:${i}`]?'checked':''}><span>${label}</span></label>`
-      ).join('');
-
-      renderShortcuts();
-    }
-
-    document.addEventListener('click', e => {
-      const panelBtn = e.target.closest('.panel > button');
-      if(panelBtn) panelBtn.parentElement.classList.toggle('open');
-
-      const check = e.target.closest('[data-check]');
-      if(check) state.checks[check.dataset.check] = check.checked;
+  // --- Upcoming Events ---
+  var upcoming = schedules.filter(function(s){ return s.dateTo >= todayStr; })
+    .sort(function(a,b){ return a.dateFrom.localeCompare(b.dateFrom); }).slice(0,3);
+  html += '<div class="sum-widget" onclick="goTab(\'schedule\')">';
+  html += '<div class="sum-head"><span class="sum-ic">📅</span> Upcoming</div>';
+  if(upcoming.length){
+    upcoming.forEach(function(s){
+      var t = typeMap[s.type] || typeMap.other;
+      html += '<div class="sum-row"><div class="dot" style="background:'+t.color+'"></div><div class="sum-row-title">'+s.title+'</div><div class="sum-row-sub">'+fmtDMY(s.dateFrom)+'</div></div>';
     });
+  } else {
+    html += '<div class="sum-label" style="padding:6px 0;">No upcoming events</div>';
+  }
+  html += '</div>';
 
-    $('#regionFilter').addEventListener('change', e => {
-      state.region = e.target.value;
-      renderCaseGrid();
-      renderViewer();
+  // --- Supplies ---
+  var pending = supplies.filter(function(s){ return !s.done; });
+  var done = supplies.filter(function(s){ return s.done; });
+  html += '<div class="sum-widget" onclick="goTab(\'supplies\')">';
+  html += '<div class="sum-head"><span class="sum-ic">🛒</span> Supplies</div>';
+  html += '<div class="sum-num" style="color:'+(pending.length?'#e03131':'#0ca678')+'">'+pending.length+'</div>';
+  html += '<div class="sum-label">item'+(pending.length!==1?'s':'')+' to buy</div>';
+  if(done.length) html += '<div class="sum-label" style="color:#0ca678;">'+done.length+' bought ✓</div>';
+  html += '</div>';
+
+  // --- Deliveries ---
+  var pendingDel = deliveries.filter(function(d){ return !d.done; });
+  var doneDel = deliveries.filter(function(d){ return d.done; });
+  html += '<div class="sum-widget" onclick="goTab(\'delivery\')">';
+  html += '<div class="sum-head"><span class="sum-ic">📦</span> Deliveries</div>';
+  html += '<div class="sum-num" style="color:'+(pendingDel.length?'#e8930c':'#0ca678')+'">'+pendingDel.length+'</div>';
+  html += '<div class="sum-label">parcel'+(pendingDel.length!==1?'s':'')+' pending</div>';
+  if(doneDel.length) html += '<div class="sum-label" style="color:#0ca678;">'+doneDel.length+' received ✓</div>';
+  html += '</div>';
+
+  // --- Contacts quick ---
+  html += '<div class="sum-widget" onclick="goTab(\'contacts\')">';
+  html += '<div class="sum-head"><span class="sum-ic">📞</span> Contacts</div>';
+  html += '<div class="sum-num">'+emergency.length+'</div>';
+  html += '<div class="sum-label">emergency</div>';
+  html += '<div class="sum-label" style="margin-top:2px;">'+family.length+' family</div>';
+  html += '</div>';
+
+  document.getElementById('summaryGrid').innerHTML = html;
+}
+
+// ====== Navigation ======
+function go(p, btn){
+  document.querySelectorAll('.page').forEach(function(e){e.classList.remove('active');});
+  document.getElementById('page-'+p).classList.add('active');
+  document.querySelectorAll('nav button').forEach(function(b){b.classList.remove('active');});
+  btn.classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// ====== Calendar ======
+var calYear, calMonth, selectedDate;
+function initCal(){
+  var now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+  selectedDate = now.toISOString().slice(0,10);
+  document.getElementById('calDow').innerHTML = DOW.map(function(d){return '<div class="cal-dow">'+d+'</div>';}).join('');
+}
+function changeMonth(dir){
+  calMonth += dir;
+  if(calMonth<0){ calMonth=11; calYear--; }
+  if(calMonth>11){ calMonth=0; calYear++; }
+  renderCalendar();
+}
+function renderCalendar(){
+  document.getElementById('calTitle').textContent = MONTHS[calMonth]+' '+calYear;
+  var first = new Date(calYear, calMonth, 1).getDay();
+  var days = new Date(calYear, calMonth+1, 0).getDate();
+  var todayStr = new Date().toISOString().slice(0,10);
+  var html = '';
+  for(var i=0;i<first;i++){ html += '<div class="cal-cell empty-cell"></div>'; }
+  for(var d=1; d<=days; d++){
+    var ds = calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(d).padStart(2,'0');
+    var evs = schedules.filter(function(s){ return dayInRange(ds, s); });
+    // deduplicate dot colours
+    var seen = {};
+    var dots = '';
+    evs.forEach(function(e){
+      var tm = typeMap[e.type] || typeMap.other;
+      var col = tm.color;
+      if(!seen[col]){ seen[col]=true; dots += '<i class="cal-dot" style="background:'+col+'"></i>'; }
     });
+    var cls = (ds===todayStr?'today ':'') + (ds===selectedDate?'selected':'');
+    html += '<div class="cal-cell '+cls+'" onclick="selectDay(\''+ds+'\')">'+d+'<div class="cal-dots">'+dots+'</div></div>';
+  }
+  document.getElementById('calGrid').innerHTML = html;
+  renderDayDetail();
+}
+function selectDay(ds){ selectedDate = ds; renderCalendar(); }
+function renderDayDetail(){
+  document.getElementById('dayTitle').textContent = '\uD83D\uDCCC '+fmtDateLong(selectedDate);
+  var evs = schedules.filter(function(s){ return dayInRange(selectedDate, s); });
+  var el = document.getElementById('dayEvents');
+  if(!evs.length){ el.innerHTML='<div class="empty">No events on this day</div>'; return; }
+  el.innerHTML = evs.map(function(s){
+    var t = typeMap[s.type] || typeMap.other;
+    var sub = (s.dateFrom !== s.dateTo) ? '<div class="item-sub">'+fmtRange(s)+'</div>' : '';
+    return '<div class="item"><div class="dot" style="background:'+t.color+'"></div><div class="item-main"><div class="item-title">'+s.title+'</div>'+sub+'</div><span class="badge '+t.cls+'">'+t.label+'</span></div>';
+  }).join('');
+}
 
-    $('#levelFilter').addEventListener('change', e => {
-      state.level = e.target.value;
-      renderCaseGrid();
-      renderViewer();
-    });
+// ====== Schedule list ======
+function renderSchedule(){
+  var sorted = schedules.slice().sort(function(a,b){ return a.dateFrom.localeCompare(b.dateFrom); });
+  var el = document.getElementById('scheduleList');
+  if(!sorted.length){ el.innerHTML='<div class="empty">No events yet</div>'; return;}
+  el.innerHTML = sorted.map(function(s){
+    var t = typeMap[s.type] || typeMap.other;
+    var i = schedules.indexOf(s);
+    return '<div class="item"><div class="dot" style="background:'+t.color+'"></div><div class="item-main"><div class="item-title">'+s.title+'</div><div class="item-sub">'+fmtRange(s)+'</div></div><span class="badge '+t.cls+'">'+t.label+'</span><button class="del" onclick="delSchedule('+i+')">x</button></div>';
+  }).join('');
+}
+function addSchedule(){
+  var dateFrom=document.getElementById('schDateFrom').value;
+  var dateTo=document.getElementById('schDateTo').value;
+  var title=document.getElementById('schTitle').value.trim();
+  var type=document.getElementById('schType').value;
+  if(!dateFrom||!title) return;
+  if(!dateTo || dateTo < dateFrom) dateTo = dateFrom;
+  schedules.push({dateFrom:dateFrom, dateTo:dateTo, title:title, type:type});
+  document.getElementById('schTitle').value='';
+  renderSchedule(); renderCalendar(); saveAll();
+}
+function delSchedule(i){ schedules.splice(i,1); renderSchedule(); renderCalendar(); saveAll(); }
 
-    $('#searchInput').addEventListener('input', e => {
-      state.search = e.target.value;
-      renderCaseGrid();
-      renderViewer();
-    });
+// ====== Salary ======
+function fmtMMDDYYYY(d){
+  var p = d.split('-');
+  return p[1]+'/'+p[2]+'/'+p[0];
+}
+function monthLabel(dateStr){
+  var p = dateStr.split('-');
+  return MONTHS[parseInt(p[1],10)-1]+' '+p[0];
+}
+function renderSalary(){
+  // Rose
+  var rst = document.getElementById('roseStatus');
+  rst.textContent = roseLog.length ? 'Paid \u2713' : 'Not Paid';
+  rst.className = 'salary-status ' + (roseLog.length?'paid':'unpaid');
+  var rpd = document.getElementById('rosePaidDate');
+  rpd.textContent = roseLog.length ? 'Last paid at: '+fmtMMDDYYYY(roseLog[0].date) : '';
+  // set date picker to today
+  document.getElementById('roseDate').value = new Date().toISOString().slice(0,10);
+  var rlog = document.getElementById('roseLog');
+  document.getElementById('roseLogEmpty').style.display = roseLog.length ? 'none' : 'block';
+  rlog.innerHTML = roseLog.map(function(l,i){
+    return '<div class="item"><div class="dot" style="background:#0ca678"></div><div class="item-main"><div class="item-title">'+l.month+'</div><div class="item-sub">Paid at: '+fmtMMDDYYYY(l.date)+'</div></div><span class="badge tag-holiday">Paid</span><button class="del" onclick="delRosePayment('+i+')">x</button></div>';
+  }).join('');
+  // Fung
+  var fst = document.getElementById('fungStatus');
+  fst.textContent = fungLog.length ? 'Paid \u2713' : 'Not Paid';
+  fst.className = 'salary-status ' + (fungLog.length?'paid':'unpaid');
+  var fpd = document.getElementById('fungPaidDate');
+  fpd.textContent = fungLog.length ? 'Last paid at: '+fmtMMDDYYYY(fungLog[0].date) : '';
+  document.getElementById('fungDate').value = new Date().toISOString().slice(0,10);
+  var flog = document.getElementById('fungLog');
+  document.getElementById('fungLogEmpty').style.display = fungLog.length ? 'none' : 'block';
+  flog.innerHTML = fungLog.map(function(l,i){
+    return '<div class="item"><div class="dot" style="background:#5b6cf9"></div><div class="item-main"><div class="item-title">'+l.month+'</div><div class="item-sub">Paid at: '+fmtMMDDYYYY(l.date)+'</div></div><span class="badge tag-school">Paid</span><button class="del" onclick="delFungPayment('+i+')">x</button></div>';
+  }).join('');
+}
+function addRosePayment(){
+  var d = document.getElementById('roseDate').value;
+  if(!d) return;
+  var m = monthLabel(d);
+  roseLog.unshift({month:m, date:d});
+  rosePaid = true;
+  renderSalary(); saveAll();
+}
+function delRosePayment(i){
+  roseLog.splice(i,1);
+  if(!roseLog.length) rosePaid = false;
+  renderSalary(); saveAll();
+}
+function addFungPayment(){
+  var d = document.getElementById('fungDate').value;
+  if(!d) return;
+  var m = monthLabel(d);
+  fungLog.unshift({month:m, date:d});
+  fungPaid = true;
+  renderSalary(); saveAll();
+}
+function delFungPayment(i){
+  fungLog.splice(i,1);
+  if(!fungLog.length) fungPaid = false;
+  renderSalary(); saveAll();
+}
 
-    $('#randomCaseBtn').addEventListener('click', () => {
-      const data = filteredCases();
-      if(!data.length) return;
-      state.currentId = data[Math.floor(Math.random()*data.length)].id;
-      renderViewer();
-      renderCaseGrid();
-    });
+// ====== Supplies ======
+function renderSupplies(){
+  var el=document.getElementById('suppliesList');
+  if(!supplies.length){ el.innerHTML='<div class="empty">No supplies needed</div>'; return;}
+  el.innerHTML = supplies.map(function(s,i){
+    return '<div class="item '+(s.done?'done':'')+'"><input type="checkbox" class="check" '+(s.done?'checked':'')+' onchange="toggleSupply('+i+')"><div class="item-main"><div class="item-title">'+s.name+'</div></div><button class="del" onclick="delSupply('+i+')">x</button></div>';
+  }).join('');
+}
+function addSupply(){
+  var v=document.getElementById('supItem').value.trim();
+  if(!v) return;
+  supplies.push({name:v,done:false});
+  document.getElementById('supItem').value='';
+  renderSupplies(); saveAll();
+}
+function toggleSupply(i){ supplies[i].done=!supplies[i].done; renderSupplies(); saveAll(); }
+function delSupply(i){ supplies.splice(i,1); renderSupplies(); saveAll(); }
 
-    $('#showCoreBtn').addEventListener('click', () => {
-      state.level = 'core';
-      renderFilters();
-      renderCaseGrid();
-      renderViewer();
-    });
+// ====== Delivery ======
+function renderDelivery(){
+  var el=document.getElementById('deliveryList');
+  if(!deliveries.length){ el.innerHTML='<div class="empty">Nothing to receive</div>'; return;}
+  el.innerHTML = deliveries.map(function(d,i){
+    var dateTxt = d.date ? fmtDMY(d.date) : '';
+    return '<div class="item '+(d.done?'done':'')+'"><input type="checkbox" class="check" '+(d.done?'checked':'')+' onchange="toggleDelivery('+i+')"><div class="item-main"><div class="item-title">'+d.item+'</div><div class="item-sub">'+dateTxt+(d.who?' · Received by '+d.who:'')+'</div></div><button class="del" onclick="delDelivery('+i+')">x</button></div>';
+  }).join('');
+}
+function addDelivery(){
+  var item=document.getElementById('delItem').value.trim();
+  var date=document.getElementById('delDate').value;
+  var who=document.getElementById('delWho').value.trim();
+  if(!item) return;
+  deliveries.push({item:item,date:date,who:who,done:false});
+  document.getElementById('delItem').value='';
+  document.getElementById('delWho').value='';
+  renderDelivery(); saveAll();
+}
+function toggleDelivery(i){ deliveries[i].done=!deliveries[i].done; renderDelivery(); saveAll(); }
+function delDelivery(i){ deliveries.splice(i,1); renderDelivery(); saveAll(); }
 
-    $('#themeToggle').addEventListener('click', () => {
-      setTheme(state.theme === 'dark' ? 'light' : 'dark');
-    });
+// ====== Contacts ======
+var emColors = ['#e03131','#e8590c','#1971c2','#5b6cf9','#d6336c','#0ca678'];
+var famColors = ['#5b6cf9','#8a4fff','#0ca678','#e8930c','#e64980','#1971c2'];
+var editingEM = -1, editingFam = -1;
 
-    setTheme(state.theme);
-    renderFilters();
-    renderCaseGrid();
-    renderViewer();
-  </script>
+function renderContacts(){
+  var em=document.getElementById('emergencyList');
+  em.innerHTML = emergency.map(function(c,i){
+    if(editingEM===i){
+      return '<div class="edit-inline"><input type="text" id="editEmName" value="'+esc(c.name)+'"><input type="text" id="editEmRole" value="'+esc(c.role)+'"><input type="text" id="editEmPhone" value="'+esc(c.phone)+'"><div class="edit-actions"><button class="btn-sm btn-cancel" onclick="editingEM=-1;renderContacts()">Cancel</button><button class="btn-sm btn-save" onclick="saveEmergency('+i+')">Save</button></div></div>';
+    }
+    return '<div class="contact emergency"><div class="avatar" style="background:'+(c.color||emColors[i%emColors.length])+'">'+c.name.slice(0,1)+'</div><div class="c-info"><div class="c-name">'+c.name+'</div><div class="c-role">'+c.role+'</div></div><a class="call-btn" href="tel:'+c.phone.replace(/ /g,'')+'">📞 '+c.phone+'</a><button class="edit-btn" onclick="editingEM='+i+';renderContacts()">✏️</button><button class="del" onclick="delEmergency('+i+')">x</button></div>';
+  }).join('');
+
+  var fl=document.getElementById('familyList');
+  fl.innerHTML = family.map(function(c,i){
+    if(editingFam===i){
+      return '<div class="edit-inline"><input type="text" id="editFamName" value="'+esc(c.name)+'"><input type="text" id="editFamPhone" value="'+esc(c.phone)+'"><div class="edit-actions"><button class="btn-sm btn-cancel" onclick="editingFam=-1;renderContacts()">Cancel</button><button class="btn-sm btn-save" onclick="saveFamily('+i+')">Save</button></div></div>';
+    }
+    return '<div class="contact"><div class="avatar" style="background:'+famColors[i%famColors.length]+'">'+c.name.slice(0,1)+'</div><div class="c-info"><div class="c-name">'+c.name+'</div><div class="c-role">'+c.phone+'</div></div><a class="call-btn" href="tel:'+c.phone.replace(/ /g,'')+'">📞 Call</a><button class="edit-btn" onclick="editingFam='+i+';renderContacts()">✏️</button><button class="del" onclick="delContact('+i+')">x</button></div>';
+  }).join('');
+}
+
+function addEmergency(){
+  var name=document.getElementById('emName').value.trim();
+  var role=document.getElementById('emRole').value.trim();
+  var phone=document.getElementById('emPhone').value.trim();
+  if(!name||!phone) return;
+  emergency.push({name:name,role:role||'',phone:phone,color:emColors[emergency.length%emColors.length]});
+  document.getElementById('emName').value='';
+  document.getElementById('emRole').value='';
+  document.getElementById('emPhone').value='';
+  renderContacts(); saveAll();
+}
+function saveEmergency(i){
+  emergency[i].name=document.getElementById('editEmName').value.trim()||emergency[i].name;
+  emergency[i].role=document.getElementById('editEmRole').value.trim();
+  emergency[i].phone=document.getElementById('editEmPhone').value.trim()||emergency[i].phone;
+  editingEM=-1; renderContacts(); saveAll();
+}
+function delEmergency(i){ emergency.splice(i,1); renderContacts(); saveAll(); }
+
+function addContact(){
+  var name=document.getElementById('conName').value.trim();
+  var phone=document.getElementById('conPhone').value.trim();
+  if(!name||!phone) return;
+  family.push({name:name,phone:phone});
+  document.getElementById('conName').value='';
+  document.getElementById('conPhone').value='';
+  renderContacts(); saveAll();
+}
+function saveFamily(i){
+  family[i].name=document.getElementById('editFamName').value.trim()||family[i].name;
+  family[i].phone=document.getElementById('editFamPhone').value.trim()||family[i].phone;
+  editingFam=-1; renderContacts(); saveAll();
+}
+function delContact(i){ family.splice(i,1); renderContacts(); saveAll(); }
+
+// ====== Load from localStorage fallback ======
+function loadFromLocal(){
+  try {
+    var raw = store ? store.getItem(STORAGE_KEY) : null;
+    if(raw){
+      var d = JSON.parse(raw);
+      applyData(d);
+      if(d.ts) lastSaved = d.ts;
+      return true;
+    }
+  } catch(e){}
+  return false;
+}
+
+// ====== Init ======
+document.addEventListener('DOMContentLoaded', function(){
+  // try localStorage first for instant display
+  if(!loadFromLocal()) useDefaults();
+  initCal();
+  renderAll();
+  // then load Firebase in background - if it works, data syncs over localStorage
+  initFirebase();
+});
+</script>
 </body>
 </html>
